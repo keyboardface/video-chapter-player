@@ -16,10 +16,14 @@ class ChapterPlayer {
         // Threshold for compact mode (default 700px)
         this.compactModeThreshold = jsonData && jsonData.compactModeThreshold ? jsonData.compactModeThreshold : 700;
         
-        // Check if this is a mobile device using touch capability as a proxy
-        this.isMobileDevice = ('ontouchstart' in window) || 
-                             (navigator.maxTouchPoints > 0) || 
-                             (navigator.msMaxTouchPoints > 0);
+        // Mobile = touch capability AND narrow viewport. Touch alone fires on
+        // Windows touchscreen laptops at desktop resolutions and would apply
+        // mobile-only fullscreen/chapter-list styling to them.
+        const hasTouch = ('ontouchstart' in window) ||
+                         (navigator.maxTouchPoints > 0) ||
+                         (navigator.msMaxTouchPoints > 0);
+        const narrowViewport = window.matchMedia('(max-width: 768px)').matches;
+        this.isMobileDevice = hasTouch && narrowViewport;
         
         // Core Player Elements - these will be queried from the rendered HTML
         this.video = null;

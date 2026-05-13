@@ -30,15 +30,10 @@
         return jsonStr.replace(/'/g, '"');
     }
     
-    // Load required styles and scripts
+    // Load required scripts. CSS is loaded per-instance by ChapterPlayer
+    // (shadow root or `<style id="vcp-styles">` in <head>), so no document-
+    // level <link> is injected here — that would duplicate the stylesheet.
     function loadDependencies(baseUrl, callback) {
-        // Load CSS
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = baseUrl + 'chapterplayer.css';
-        document.head.appendChild(cssLink);
-        
-        // Load JavaScript
         const jsScript = document.createElement('script');
         jsScript.src = baseUrl + 'chapterplayer.js';
         jsScript.onload = callback;

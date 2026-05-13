@@ -338,3 +338,12 @@ Alternatives:
 - **`shadowDom: false` injects one `<style id="vcp-styles">`** into
   `<head>`. Idempotent if multiple players use it. Removing the style by
   hand will break players that share it.
+- **Don't set `display` on `.video-chapter-player` or
+  `.chapter-player-instance`** from host CSS. The player relies on
+  `display: flex` (set inside `@media (min-width: 481px)`) to sit the
+  video and chapter list side-by-side on desktop. Host CSS that wins
+  specificity on `display` — e.g.
+  `.my-wrapper .video-chapter-player { display: block; }` at (0,2,0)
+  overriding the player's (0,1,0) — silently collapses the layout to
+  stacked. If you need a block-level wrapper, wrap the player in a parent
+  `<div>` and style that; leave the player element's `display` alone.
