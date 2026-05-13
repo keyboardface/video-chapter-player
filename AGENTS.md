@@ -103,6 +103,10 @@ they pierce the shadow DOM via inheritance.
 | `--vcp-speed-active` | `#00aeff` | Active row in the speed menu |
 | `--vcp-chapter-list-bg` | `#f8f9fa` | Chapter sidebar background |
 | `--vcp-chapter-item-bg` | `#ffffff` | Per-chapter card background |
+| `--vcp-chapter-item-border` | `#e9ecef` | Per-chapter card border |
+| `--vcp-chapter-item-hover-bg` | `#f1f3f5` | Per-chapter card background on hover |
+| `--vcp-chapter-item-text-title` | `#212529` | Chapter title text (inactive) |
+| `--vcp-chapter-item-text-desc` | `#495057` | Chapter description text (inactive) |
 | `--vcp-chapter-item-active-bg` | `#4a4a4a` | Current chapter highlight |
 | `--vcp-chapter-item-active-text` | `#ffffff` | Text inside the highlighted chapter |
 | `--vcp-chapter-title` | `#1c2938` | Chapter list heading |
@@ -296,7 +300,7 @@ from the same directory.
 Recommended (production): **jsDelivr against this repo's pinned tag**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/keyboardface/video-chapter-player@v1.0.0/embed.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/keyboardface/video-chapter-player@v1.1.0/embed.js"></script>
 ```
 
 Free, global CDN, versioned, cached forever at the tag. Bump the version in

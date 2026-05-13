@@ -4,7 +4,7 @@ A drop-in chaptered MP4 player. One `<div>`, one `<script>`, no build step, no d
 
 ```html
 <div class="video-chapter-player" data-config="{'videoUrl': 'https://example.com/video.mp4','chapters': [{'id':'1','timestamp':0,'title':'Intro'},{'id':'2','timestamp':30,'title':'Setup'}]}"></div>
-<script src="https://cdn.jsdelivr.net/gh/keyboardface/video-chapter-player@v1.0.0/embed.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/keyboardface/video-chapter-player@v1.1.0/embed.js"></script>
 ```
 
 That's it. The script finds every `.video-chapter-player` on the page, parses
@@ -46,7 +46,7 @@ See [AGENTS.md](AGENTS.md) for the full variable surface.
 Pinned via jsDelivr (recommended):
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/keyboardface/video-chapter-player@v1.0.0/embed.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/keyboardface/video-chapter-player@v1.1.0/embed.js"></script>
 ```
 
 Or self-host: copy `embed.js`, `chapterplayer.js`, and `chapterplayer.css` into

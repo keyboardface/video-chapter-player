@@ -31,6 +31,10 @@
     --vcp-speed-active: #00aeff;
     --vcp-chapter-list-bg: #f8f9fa;
     --vcp-chapter-item-bg: #ffffff;
+    --vcp-chapter-item-border: #e9ecef;
+    --vcp-chapter-item-hover-bg: #f1f3f5;
+    --vcp-chapter-item-text-title: #212529;
+    --vcp-chapter-item-text-desc: #495057;
     --vcp-chapter-item-active-bg: #4a4a4a;
     --vcp-chapter-item-active-text: #ffffff;
     --vcp-chapter-title: #1c2938;
@@ -561,15 +565,13 @@
     padding: 10px 12px;
     margin-bottom: 10px;
     background-color: var(--vcp-chapter-item-bg);
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--vcp-chapter-item-border);
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 .chapter-player-instance .chapter-item:hover {
-    background-color: #f1f3f5;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    background-color: var(--vcp-chapter-item-hover-bg);
 }
 .chapter-player-instance .chapter-item.active {
     background-color: var(--vcp-chapter-item-active-bg); /* Change from blue to darker grey */
@@ -580,8 +582,8 @@
 .chapter-player-instance .chapter-item strong {
     display: block; 
     font-size: 1.05em; 
-    margin-bottom: 4px; 
-    color: #212529; /* Darker text color matching index.html */
+    margin-bottom: 4px;
+    color: var(--vcp-chapter-item-text-title);
     line-height: 1.2;
     font-weight: 500; /* Medium weight for Roboto */
 }
@@ -589,8 +591,8 @@
     color: var(--vcp-chapter-item-active-text);
 }
 .chapter-player-instance .chapter-item p {
-    font-size: 0.9em; 
-    color: #495057; /* Gray color matching index.html */
+    font-size: 0.9em;
+    color: var(--vcp-chapter-item-text-desc);
     margin: 2px 0 0 0; 
     word-wrap: break-word;
     line-height: 1.2;
@@ -1011,10 +1013,10 @@
     -moz-transition: none !important;
 }
 
-.chapter-player-instance.mobile-device .chapter-list:hover,
-.chapter-player-instance.mobile-device .chapter-list:focus,
-.chapter-player-instance.mobile-device .chapter-list:active,
-.chapter-player-instance.mobile-device .chapter-list:focus-within {
+.chapter-player-instance.mobile-device.compact-mode .chapter-list:hover,
+.chapter-player-instance.mobile-device.compact-mode .chapter-list:focus,
+.chapter-player-instance.mobile-device.compact-mode .chapter-list:active,
+.chapter-player-instance.mobile-device.compact-mode .chapter-list:focus-within {
     padding: 15px !important;
     max-height: 250px !important;
     transform: none !important;
@@ -1031,9 +1033,9 @@
 }
 
 /* Prevent hover effects when touched on mobile */
-.chapter-player-instance.mobile-device .chapter-list[data-touched],
-.chapter-player-instance.mobile-device .chapter-list[data-touched]:hover, 
-.chapter-player-instance.mobile-device .chapter-list[data-touched]:focus {
+.chapter-player-instance.mobile-device.compact-mode .chapter-list[data-touched],
+.chapter-player-instance.mobile-device.compact-mode .chapter-list[data-touched]:hover,
+.chapter-player-instance.mobile-device.compact-mode .chapter-list[data-touched]:focus {
     padding: 15px !important;
     max-height: 250px !important;
     transform: none !important;
@@ -1091,13 +1093,13 @@
     transform: none !important;
     transition: none !important;
     animation: none !important;
-    background-color: #f1f3f5; /* Subtle background change instead of transform */
+    background-color: var(--vcp-chapter-item-hover-bg);
     box-shadow: none !important;
 }
 
 /* Active state for touch */
 .chapter-player-instance.mobile-device .chapter-list .chapter-item:active {
-    background-color: #e9ecef;
+    background-color: var(--vcp-chapter-item-border);
 }
 
 /* Active touch state */
