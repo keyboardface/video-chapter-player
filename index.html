@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Chapter Editor - Segmented Timeline</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Existing styles */
+        /* ... */
+
+        /* Transcription UI styles */
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .status {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        
+        .transcript-segment {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        
+        .timestamp {
+            font-weight: 500;
+            color: #4a4a4a;
+            display: inline-block;
+            padding: 2px 6px;
+            background-color: #f1f3f5;
+            border-radius: 3px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .timestamp:hover {
+            background-color: #e9ecef;
+        }
+        
+        .note {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+    <script>
+        // Helper function to get base URL of current page
+        function getBaseUrl() {
+            return window.location.origin + 
+                window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+        }
+        
+        // Helper to convert relative URLs to absolute
+        function toAbsoluteUrl(url) {
+            if (!url) return '';
+            
+            // If already absolute, return as is
+            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
+                return url;
+            }
+            
+            // Otherwise, prepend the base URL
+            return getBaseUrl() + url;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Player & Chapter Editor 🎞️</h1>
+
+        <div class="player-container">
+            <div class="video-wrapper">
+                <video id="mainVideo" width="640" height="360">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div id="bigPlayButtonOverlay" class="big-play-button-overlay">
+                    <button id="bigPlayPauseBtn" title="Play/Pause">
+                        <svg class="icon icon-play active" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg class="icon icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                        <svg class="icon icon-replay" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>
+                    </button>
+                </div>
+
+                <div id="timelineContainer" class="timeline-container">
+                    <div id="timelinePreviewContainer" class="timeline-preview-container">
+                        <div class="preview-wrapper">
+                            <canvas id="previewCanvas"></canvas>
+                        </div>
+                        <div class="preview-chapter-title"></div>
+                        <div class="preview-time-no-preview"></div>
+                    </div>
+                    <div id="seekBarWrapper" class="seek-bar-wrapper"> 
+                        <input type="range" id="seekBarCustom" value="0" min="0" step="0.1">
+                    </div>
+                </div>
+
+                <div id="videoControlsCustom" class="video-controls-custom">
+                    <button id="playPauseBtnCustom" title="Play/Pause">
+                        <svg class="icon icon-play active" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg class="icon icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                        <svg class="icon icon-replay" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>
+                    </button>
+                    <button id="nextChapterBtnCustom" title="Next Chapter">
+                        <svg class="icon icon-next active" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+                    </button>
+                    <div id="currentChapterTitleDisplay" title="Current Chapter"></div> 
+                    <div id="timeDisplayCustom" class="time-display">00:00 / 00:00</div>
+                    
+                    <div class="right-controls">
+                        <button id="speedBtnCustom" class="playback-speed-button" title="Playback Speed">1x</button>
+                        <div id="speedMenuCustom" class="speed-menu">
+                            <button data-speed="0.5">0.5x</button>
+                            <button data-speed="0.75">0.75x</button>
+                            <button data-speed="1" class="active-speed">1x (Normal)</button>
+                            <button data-speed="1.25">1.25x</button>
+                            <button data-speed="1.5">1.5x</button>
+                            <button data-speed="2">2x</button>
+                        </div>
+                        <div class="volume-controls">
+                            <button id="muteBtnCustom" title="Mute/Unmute">
+                                <svg class="icon icon-volume-high active" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
+                                <svg class="icon icon-volume-muted" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L7 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3z"></path></svg>
+                            </button>
+                            <input type="range" id="volumeBarCustom" class="volume-bar" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <button id="pipBtnCustom" title="Picture-in-Picture">
+                            <svg class="icon icon-pip active" viewBox="0 0 24 24"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"></path></svg>
+                        </button>
+                        <button id="fullscreenBtnCustom" title="Fullscreen">
+                            <svg class="icon icon-fullscreen active" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path></svg>
+                            <svg class="icon icon-fullscreen-exit" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="chapterList" class="chapter-list">
+                <h2 id="chapterListTitle">Chapters 📖</h2> 
+                <p>Load a video and add chapters to see them here.</p>
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <h2>Editor ⚙️</h2>
+            <div class="editor-grid">
+                <div class="editor-column">
+                    <div class="editor-settings">
+                        <div class="preview-toggle-setting">
+                            <input type="checkbox" id="previewToggle" checked>
+                            <label for="previewToggle">Enable Video Preview on Timeline</label>
+                        </div>
+                    </div>
+                    <div class="url-input">
+                        <label for="videoUrl">MP4 Video URL:</label>
+                        <label>Example: https://themes.toolkt.io/file/video-chapters/New-Super-Admin-Release.mp4</label>
+                        <input type="text" id="videoUrl" placeholder="Paste full MP4 URL here..." value="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">
+                        <button id="loadVideoBtn">Load Video</button>
+                        <button id="loadFromEmbedBtn" class="secondary-btn">Load from existing embed</button>
+                    </div>
+
+                    <div class="url-input">
+                        <label for="posterUrl">Poster Image URL (JPG/PNG):</label>
+                        <input type="text" id="posterUrl" placeholder="Paste image URL for video thumbnail..." value="https://peach.blender.org/wp-content/uploads/bbb-splash.png">
+                    </div>
+
+                    <div class="chapter-title-editor"> 
+                        <h3>Chapter List Settings</h3>
+                        <div>
+                            <label for="customChapterTitle">Chapter List Title:</label>
+                            <input type="text" id="customChapterTitleInput" value="Chapters 📖">
+                        </div>
+                        <div class="chapter-title-visibility">
+                            <input type="checkbox" id="hideChapterTitleCheckbox">
+                            <label for="hideChapterTitleCheckbox">Hide Chapter List Title</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-column">
+                    <div class="chapters-header">
+                        <h3>Current Chapters</h3>
+                        <button id="openAddChapterBtn" class="primary-btn">Add New Chapter</button>
+                        <button id="importChaptersBtn" class="primary-btn">Import Chapter List</button>
+                        <button id="transcribeVideoBtn" class="primary-btn">Transcribe Video</button>
+                    </div>
+                    <div id="chaptersPreview" class="chapters-preview">
+                        <p>No chapters added yet for the current video.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="embed-section">
+            <h2>Embed Code 📋</h2>
+            <p>Copy the JSON below and use it with <code>embed.js</code> (to be created separately) to render this player elsewhere.</p>
+            <textarea id="jsonOutput" readonly></textarea>
+            <button id="copyJsonBtn">Copy JSON</button>
+        </div>
+
+        <!-- Chapter Editor Modal -->
+        <div id="chapterEditorModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add/Edit Chapter</h3>
+                    <button class="close-modal-btn">&times;</button>
+                </div>
+                <div class="chapter-editor">
+                    <input type="hidden" id="chapterId">
+                    <div>
+                        <label for="chapterTimestamp">Timestamp (e.g., 01:30 or 90s):</label>
+                        <div class="timestamp-input-group">
+                            <input type="text" id="chapterTimestamp" placeholder="HH:MM:SS or seconds">
+                            <button id="getTimestampBtn" title="Get current video time">Get Current Time</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="chapterTitle">Chapter Title:</label>
+                        <input type="text" id="chapterTitle" placeholder="Enter chapter title">
+                    </div>
+                    <div>
+                        <label for="chapterDescription">Chapter Description (optional):</label>
+                        <textarea id="chapterDescription" placeholder="Enter chapter description"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="addChapterBtn" class="primary-btn">Add Chapter</button>
+                        <button id="cancelChapterBtn" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Chapters Modal -->
+        <div id="importChaptersModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Import Chapter List</h3>
+                    <button class="close-modal-btn">&times;</button>
+                </div>
+                <div class="chapter-editor">
+                    <div>
+                        <p>Paste a list of timestamps and chapter titles (one per line).</p>
+                        <p class="format-hint">Format: <code>0:00 Chapter Title</code> or <code>mm:ss Chapter Title</code></p>
+                        <textarea id="chaptersImportText" placeholder="Example:
+0:00 Introduction
+1:30 First Section
+5:45 Second Section">
+0:00 Introduction to the Toolkit Super Admin feature
+0:30 Overview of customizer structure and menu groups
+1:31 Debugging location groups and menu configurations
+2:14 Menu troubleshooting capabilities
+3:12 Customizer troubleshooting tools
+4:22 CSS selector testing functionality
+4:56 Future development plans and feedback request
+6:11 Access instructions for agency admins
+
+</textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="processImportBtn" class="primary-btn">Import Chapters</button>
+                        <button id="cancelImportBtn" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Load from Embed Modal -->
+        <div id="loadFromEmbedModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Load from Existing Embed Code</h3>
+                    <button class="close-modal-btn">&times;</button>
+                </div>
+                <div class="chapter-editor">
+                    <div>
+                        <p>Paste the existing embed code to load its configuration.</p>
+                        <p class="format-hint">The embed code should include <code>&lt;div class="video-chapter-player" data-config="..."&gt;</code></p>
+                        <textarea id="embedCodeText" placeholder="Paste embed code here..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="processEmbedBtn" class="primary-btn">Load Configuration</button>
+                        <button id="cancelEmbedBtn" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transcription Modal -->
+        <div id="transcriptionModal" class="modal-overlay">
+            <div class="modal-content transcription-modal">
+                <div class="modal-header">
+                    <h3>Video Transcription</h3>
+                    <button class="close-modal-btn">&times;</button>
+                </div>
+                <div class="transcription-container">
+                    <div class="warning">
+                        <strong>Note:</strong> This feature uses Whisper.js which runs locally in your browser.
+                        It will download a ~40MB model file when you start transcription. The transcription process
+                        may take some time depending on your device and the video length.
+                    </div>
+                    
+                    <div id="libraryErrorMessage" class="warning" style="display: none; background-color: #ffdddd; border: 1px solid #ffaaaa;">
+                        <strong>Browser Compatibility Issue:</strong> There might be a problem loading the transcription library in your current browser. 
+                        <br><br>
+                        <strong>Suggestions:</strong>
+                        <ul>
+                            <li>Try using Google Chrome, which has the best compatibility</li>
+                            <li>Make sure your browser is up to date</li>
+                            <li>Disable any content blockers or tracking protection that might be interfering</li>
+                            <li>Try refreshing the page</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="startTranscribeBtn">Start Transcription</button>
+                        <button id="cancelTranscribeBtn" disabled>Cancel</button>
+                        <button id="createChaptersBtn" disabled>Convert to Chapters</button>
+                    </div>
+                    
+                    <div class="status" id="statusDisplay">
+                        Waiting to start transcription...
+                    </div>
+                    
+                    <div id="progressBar" style="width: 100%; height: 10px; background-color: #e9ecef; border-radius: 5px; margin: 10px 0; overflow: hidden; display: none;">
+                        <div id="progressFill" style="height: 100%; background-color: #4a4a4a; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    
+                    <div class="model-loader" id="modelLoader" style="margin: 15px 0; display: none;">
+                        <p>Downloading Whisper model: <span id="modelProgress">0%</span></p>
+                    </div>
+                    
+                    <div class="transcription-results" id="transcriptionResults" style="max-height: 500px; overflow-y: auto; background-color: white; border: 1px solid #dee2e6; border-radius: 4px; padding: 15px;">
+                        <p>Transcription will appear here after processing...</p>
+                    </div>
+                    
+                    <p class="note" style="font-size: 13px; color: #6c757d; margin-top: 5px;">Click on any timestamp to jump to that position in the video.</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeTranscriptionBtn" class="secondary-btn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <p id="customModalMessage"></p>
+            <button id="customModalCloseBtn">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <!-- Transformers.js removed due to compatibility issues -->
+    <script src="transcription.js"></script>
+    <script>
+        // Add this script to ensure JSON output contains absolute URLs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find the original jsonOutput textarea
+            const jsonOutput = document.getElementById('jsonOutput');
+            if (jsonOutput) {
+                // Override the original updateJsonOutput function to use absolute URLs
+                window.updateJsonOutputWithAbsolutePaths = function() {
+                    if (typeof window.updateJsonOutput === 'function') {
+                        // Call the original function first
+                        window.updateJsonOutput();
+                        
+                        // Then modify the JSON to use absolute URLs
+                        try {
+                            const jsonData = JSON.parse(jsonOutput.value);
+                            
+                            // Convert video URL to absolute
+                            if (jsonData.videoUrl) {
+                                jsonData.videoUrl = toAbsoluteUrl(jsonData.videoUrl);
+                            }
+                            
+                            // Update the JSON output
+                            jsonOutput.value = JSON.stringify(jsonData, null, 2);
+                        } catch (e) {
+                            console.error('Error processing JSON for absolute URLs:', e);
+                        }
+                    }
+                };
+                
+                // Find and replace any calls to updateJsonOutput with our new function
+                if (typeof window.updateJsonOutput === 'function') {
+                    const originalFunction = window.updateJsonOutput;
+                    window.updateJsonOutput = function() {
+                        originalFunction();
+                        window.updateJsonOutputWithAbsolutePaths();
+                    };
+                }
+            }
+        });
+    </script>
+</body>
+</html>

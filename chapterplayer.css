@@ -1,0 +1,1106 @@
+/* Styles for the ChapterPlayer component */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Theme variables — override these on the host element to retheme the player.
+   Works through the shadow DOM via CSS custom property inheritance.
+   See AGENTS.md for the full list and worked examples.
+   ────────────────────────────────────────────────────────────────────────── */
+/* Defaults are wrapped in :where() so they have zero specificity — any host-page
+   override like `.video-chapter-player { --vcp-progress: #ff6b00; }` (specificity
+   0,1,0) will always win, regardless of source order.
+
+   Two selectors handle two modes:
+   - `:host` applies to the host element when this CSS is loaded inside a shadow
+     root. Inner shadow elements inherit through it.
+   - `html .chapter-player-instance` applies to the host when this CSS is loaded
+     into the document <head> (shadowDom: false mode). Scoped under `html` so it
+     can NOT match the inner wrapper div inside the shadow (which would shadow
+     the host's overrides). */
+:where(:host),
+:where(html .chapter-player-instance) {
+    /* Colors */
+    --vcp-font: 'Roboto', Arial, sans-serif;
+    --vcp-bg-video: #000;
+    --vcp-radius: 8px;
+    --vcp-progress: #FF0000;
+    --vcp-progress-hover: #FF2222;
+    --vcp-controls-bg: rgba(20, 20, 20, 0.7);
+    --vcp-controls-text: #e0e0e0;
+    --vcp-controls-text-hover: #ffffff;
+    --vcp-speed-active: #00aeff;
+    --vcp-chapter-list-bg: #f8f9fa;
+    --vcp-chapter-item-bg: #ffffff;
+    --vcp-chapter-item-active-bg: #4a4a4a;
+    --vcp-chapter-item-active-text: #ffffff;
+    --vcp-chapter-title: #1c2938;
+    /* Spacing / layout */
+    --vcp-gap: 25px;
+    --vcp-margin-bottom: 35px;
+    --vcp-video-flex: 3 1 400px;
+    --vcp-chapter-list-flex: 1 1 250px;
+    --vcp-video-min-width: 300px;
+    --vcp-controls-height: 50px;
+    --vcp-timeline-height: 30px;
+    --vcp-big-play-size: 80px;
+}
+
+.chapter-player-instance * {
+    font-family: var(--vcp-font);
+}
+
+.chapter-player-instance {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vcp-gap);
+    margin-bottom: var(--vcp-margin-bottom);
+    position: relative;
+}
+
+.chapter-player-instance .video-wrapper {
+    flex: var(--vcp-video-flex); /* Reduced from 600px to allow side-by-side layout in smaller containers */
+    min-width: var(--vcp-video-min-width);
+    position: relative;
+    background-color: var(--vcp-bg-video);
+    border-radius: var(--vcp-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+}
+
+.chapter-player-instance #cp-mainVideo { /* ID prefixed */
+    width: 100%;
+    display: block;
+    flex: 1;
+}
+
+.chapter-player-instance .big-play-button-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.3); 
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+    z-index: 10; 
+}
+.chapter-player-instance .big-play-button-overlay.hidden {
+    opacity: 0;
+    pointer-events: none; 
+}
+.chapter-player-instance .big-play-button-overlay:hover {
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.chapter-player-instance #cp-bigPlayPauseBtn { /* ID prefixed */
+    background-color: rgba(30, 30, 30, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: var(--vcp-big-play-size);
+    height: var(--vcp-big-play-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.chapter-player-instance #cp-bigPlayPauseBtn:hover { /* ID prefixed */
+    transform: scale(1.1);
+    background-color: rgba(0, 0, 0, 0.9);
+}
+.chapter-player-instance #cp-bigPlayPauseBtn svg { /* ID prefixed */
+    width: 40px; 
+    height: 40px;
+    fill: #ffffff;
+}
+/* Generic icon visibility, assuming icons are direct children of buttons */
+.chapter-player-instance button .icon { display: none; }
+.chapter-player-instance button .icon.active { display: inline-block; }
+
+
+.chapter-player-instance .timeline-container {
+    position: absolute;
+    bottom: var(--vcp-controls-height); /* Initial position, assuming controls are 50px high */
+    left: 0;
+    right: 0;
+    padding: 0 15px;
+    box-sizing: border-box;
+    opacity: 1; /* Visible by default when video-wrapper is hovered */
+    transition: opacity 0.3s ease-in-out, bottom 0.3s ease-in-out;
+    z-index: 15;
+    height: var(--vcp-timeline-height); /* Height of the timeline area */
+}
+
+.chapter-player-instance .timeline-container.bottom-position {
+    /* This class is added by JS when controls are hidden to move timeline down */
+    bottom: 0;
+}
+
+/* Show timeline when video wrapper is hovered (player itself handles visibility logic too) */
+.chapter-player-instance .video-wrapper:hover .timeline-container,
+.chapter-player-instance .video-wrapper .timeline-container.visible { 
+     opacity: 1;
+}
+
+.chapter-player-instance .timeline-preview-container {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    display: none;
+    z-index: 30;
+    pointer-events: none;
+    max-width: 500px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.chapter-player-instance .preview-wrapper {
+    position: relative;
+    /* aspect-ratio: 16/9; */
+    background: none;
+    border-radius: 0;
+    overflow: visible;
+    margin: auto; /* center */
+    margin-bottom: 8px;
+}
+
+.chapter-player-instance #cp-previewCanvas {
+    width: 200px;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.chapter-player-instance .preview-time {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 0.8em;
+}
+
+.chapter-player-instance .preview-chapter-title {
+    color: white;
+    font-size: 1.1em;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.7);
+    padding: 0 8px;
+    line-height: 1.3;
+    max-width: 320px;
+}
+
+.chapter-player-instance .preview-time-no-preview {
+    color: white;
+    text-align: center;
+    font-size: 12px;
+    margin-top: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    width: auto;
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 50px;
+}
+
+.chapter-player-instance .timeline-preview-container.no-preview .preview-wrapper {
+    display: none;
+}
+
+.chapter-player-instance .timeline-preview-container.no-preview {
+    width: auto;
+    min-width: 100px;
+    padding: 8px 12px;
+}
+
+.chapter-player-instance .timeline-preview-container.no-preview .preview-chapter-title {
+    margin-top: 0;
+}
+
+.chapter-player-instance .seek-bar-wrapper {
+    width: 100%; 
+    position: relative; 
+    height: 20px; /* Total clickable height for the seek bar area */
+    display: flex; 
+    align-items: center; 
+    border-radius: 5px; 
+    cursor: pointer;
+    top: 50%; /* Vertically center within timeline-container */
+    transform: translateY(-50%);
+    overflow: visible; /* Allow tooltips/previews to show outside */
+    padding-top: 6px; /* Padding to make the effective hover/click area larger than visual segments */
+    padding-bottom: 6px;
+    background: transparent;
+}
+
+.chapter-player-instance .timeline-chapter-segment {
+    height: 6px;
+    background-color: rgba(209, 213, 219, 0.35);
+    border-radius: 4px;
+    transition: all 0.2s ease-out;
+    position: relative; 
+    overflow: visible;
+    display: flex; 
+    align-items: center; 
+    box-sizing: border-box;
+    z-index: 2;
+    cursor: pointer;
+    pointer-events: auto;
+    margin: 0 1px;
+}
+
+.chapter-player-instance .timeline-chapter-segment.hovered {
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    z-index: 10;
+    border-radius: 4px;
+    transition: height 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.chapter-player-instance .timeline-chapter-segment.hovered,
+.chapter-player-instance .timeline-chapter-segment.hovered * {
+    color: #222 !important;
+    text-shadow: 1px 1px 6px rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.chapter-player-instance .timeline-chapter-segment.active {
+    background-color: rgba(209, 213, 219, 0.5);
+}
+
+.chapter-player-instance .timeline-chapter-segment .segment-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--vcp-progress);
+    border-radius: 3px;
+    z-index: 3;
+    pointer-events: none;
+    transition: none;
+    box-shadow: 0 0 4px rgba(255, 0, 0, 0.4);
+}
+
+.chapter-player-instance .timeline-chapter-segment.active .segment-progress {
+    transition: width 0.1s linear;
+}
+
+.chapter-player-instance .timeline-chapter-segment.hovered .segment-progress {
+    background-color: var(--vcp-progress-hover);
+    box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
+}
+
+.chapter-player-instance .timeline-gap-segment {
+    width: 3px;
+    height: 100%; 
+    flex-shrink: 0; 
+    background-color: transparent;
+}
+
+.chapter-player-instance #cp-seekBarCustom {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%; 
+    height: 100%; 
+    background: transparent; 
+    position: absolute; 
+    top: 0;
+    left: 0;
+    z-index: 5;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+    pointer-events: none;
+}
+
+.chapter-player-instance #cp-seekBarCustom::-webkit-slider-thumb {
+    -webkit-appearance: none; 
+    appearance: none;
+    width: 20px; 
+    height: 20px; 
+    background: transparent; 
+    cursor: pointer; 
+}
+
+.chapter-player-instance #cp-seekBarCustom::-moz-range-thumb {
+    width: 20px; 
+    height: 20px; 
+    background: transparent;
+    border: none; 
+    border-radius: 50%; 
+    cursor: pointer; 
+}
+
+.chapter-player-instance .seek-bar-tooltip { 
+    position: absolute;
+    bottom: 100%; 
+    margin-bottom: 12px; 
+    left: 0; 
+    transform: translateX(-50%); 
+    background-color: rgba(28, 28, 28, 0.95); 
+    color: #fff;
+    padding: 10px 16px; 
+    border-radius: 8px; 
+    font-size: 1em; 
+    white-space: nowrap;
+    display: none; 
+    z-index: 30; 
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    text-align: center;
+}
+
+.chapter-player-instance .seek-bar-tooltip .tooltip-title {
+    display: block;
+    font-size: 1.2em; 
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.chapter-player-instance .seek-bar-tooltip .tooltip-time {
+    display: block;
+    font-size: 0.9em;
+    color: #b8b8b8;
+}
+
+.chapter-player-instance .video-controls-custom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--vcp-controls-bg);
+    backdrop-filter: blur(5px);
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+    opacity: 0; /* Hidden by default, shown on hover/interaction */
+    transition: opacity 0.3s ease-in-out;
+    border-bottom-left-radius: 8px; 
+    border-bottom-right-radius: 8px; 
+    z-index: 20; /* Above timeline, below pop-up menus */
+}
+
+.chapter-player-instance .video-wrapper:hover .video-controls-custom,
+.chapter-player-instance .video-wrapper .video-controls-custom.visible { 
+    opacity: 1; /* Show controls */
+}
+
+.chapter-player-instance .video-controls-custom button {
+    background: none; border: none; color: var(--vcp-controls-text);
+    padding: 6px; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+    position: relative; /* For icon positioning if needed */
+}
+.chapter-player-instance .video-controls-custom button svg {
+    width: 20px; height: 20px; fill: currentColor;
+}
+.chapter-player-instance .video-controls-custom button:hover {
+    color: var(--vcp-controls-text-hover); transform: scale(1.1);
+}
+/* Icon visibility rules are already defined globally for .chapter-player-instance button .icon */
+
+.chapter-player-instance #cp-currentChapterTitleDisplay { /* ID prefixed */
+    color: var(--vcp-controls-text);
+    font-size: 0.9em;
+    margin-left: 8px; 
+    margin-right: 8px; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px; 
+    font-weight: 500;
+}
+
+.chapter-player-instance .volume-controls { display: flex; align-items: center; gap: 8px; }
+
+/* Generic styling for range inputs within player controls (volume bar) */
+.chapter-player-instance .video-controls-custom input[type="range"].volume-bar {
+    width: 70px; 
+    height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    outline: none;
+}
+.chapter-player-instance .video-controls-custom input[type="range"].volume-bar::-webkit-slider-runnable-track {
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 3px;
+}
+.chapter-player-instance .video-controls-custom input[type="range"].volume-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px; 
+    height: 12px; 
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -3.5px; /* Align thumb with track */
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+.chapter-player-instance .video-controls-custom input[type="range"].volume-bar::-moz-range-track {
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 3px;
+}
+.chapter-player-instance .video-controls-custom input[type="range"].volume-bar::-moz-range-thumb {
+    width: 12px; 
+    height: 12px; 
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+
+.chapter-player-instance .time-display { /* Class for cp-timeDisplayCustom */
+    color: var(--vcp-controls-text);
+    font-size: 0.85em;
+    min-width: 85px; 
+    text-align: center; 
+    user-select: none; 
+    font-variant-numeric: tabular-nums; /* Ensures numbers don't change width */
+}
+
+.chapter-player-instance .playback-speed-button { /* Class for cp-speedBtnCustom */
+    font-size: 0.8em !important; /* Use important if overriding other button styles */
+    padding: 4px 6px !important; 
+    min-width: 35px;
+    text-align: center;
+    color: var(--vcp-controls-text);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    font-weight: 500;
+}
+.chapter-player-instance .playback-speed-button:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.chapter-player-instance .speed-menu { /* Class for cp-speedMenuCustom */
+    position: absolute;
+    bottom: 100%; /* Position above the controls bar */
+    /* left: 50%; transform: translateX(-50%); */ /* Centered above its button - JS might handle this better */
+    /* For now, assume it's relative to a parent or positioned by JS */
+    background-color: rgba(40, 40, 40, 0.95);
+    backdrop-filter: blur(3px);
+    border-radius: 6px;
+    padding: 5px 0;
+    z-index: 30; /* Above other controls */
+    display: none; /* Controlled by JS */
+    min-width: 60px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+}
+.chapter-player-instance .speed-menu button {
+    display: block; width: 100%; text-align: center;
+    padding: 8px 12px; font-size: 0.9em; color: var(--vcp-controls-text);
+    /* Override general button styles from controls if needed */
+    background: none; border: none; 
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.chapter-player-instance .speed-menu button:hover {
+    background-color: rgba(255,255,255,0.15); color: #fff;
+    transform: none; /* Override transform from general button hover */
+}
+.chapter-player-instance .speed-menu button.active-speed {
+    font-weight: bold; color: var(--vcp-speed-active);
+}
+
+.chapter-player-instance .right-controls { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    margin-left: auto; /* Pushes these controls to the right */
+}
+
+/* Chapter List specific to the player instance */
+.chapter-player-instance .chapter-list {
+    flex: var(--vcp-chapter-list-flex); /* Default flex properties, can be overridden by container */
+    min-width: 220px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 15px;
+    background: var(--vcp-chapter-list-bg);
+    border: 1px solid #dee2e6;
+    border-radius: var(--vcp-radius);
+}
+.chapter-player-instance #cp-chapterListTitle { /* ID prefixed */
+    font-size: 1.25em;
+    border-bottom: 1px solid #ced4da;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    color: var(--vcp-chapter-title);
+    font-weight: 500;
+}
+.chapter-player-instance .chapter-item {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background-color: var(--vcp-chapter-item-bg);
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.chapter-player-instance .chapter-item:hover {
+    background-color: #f1f3f5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+.chapter-player-instance .chapter-item.active {
+    background-color: var(--vcp-chapter-item-active-bg); /* Change from blue to darker grey */
+    color: var(--vcp-chapter-item-active-text);
+    border-color: #3a3a3a;
+    box-shadow: 0 2px 5px rgba(74, 74, 74, 0.3);
+}
+.chapter-player-instance .chapter-item strong {
+    display: block; 
+    font-size: 1.05em; 
+    margin-bottom: 4px; 
+    color: #212529; /* Darker text color matching index.html */
+    line-height: 1.2;
+    font-weight: 500; /* Medium weight for Roboto */
+}
+.chapter-player-instance .chapter-item.active strong {
+    color: var(--vcp-chapter-item-active-text);
+}
+.chapter-player-instance .chapter-item p {
+    font-size: 0.9em; 
+    color: #495057; /* Gray color matching index.html */
+    margin: 2px 0 0 0; 
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+.chapter-player-instance .chapter-item.active p { 
+    color: #e0e0e0; 
+}
+
+/* Desktop layout for player - side-by-side arrangement */
+@media (min-width: 481px) {
+    .chapter-player-instance {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .chapter-player-instance .video-wrapper {
+        flex: 3 1 400px;
+    }
+    
+    .chapter-player-instance .chapter-list {
+        flex: 1 1 250px;
+        max-height: 420px;
+    }
+}
+
+/* Mobile layout for player - stacked arrangement */
+@media (max-width: 480px) {
+    /* This will be used for actual mobile devices */
+    .chapter-player-instance,
+    .chapter-player-instance.mobile-device {
+        flex-direction: column;
+        gap: 15px;
+        padding: 0;
+    }
+    
+    .chapter-player-instance.mobile-device .video-wrapper {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .chapter-player-instance.mobile-device .chapter-list {
+        position: static;
+        max-height: 250px;
+        width: 100%;
+        max-width: 100%;
+        background: #f8f9fa;
+        padding: 10px;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow-y: auto;
+        transition: none !important;
+        animation: none !important;
+        -webkit-transition: none !important;
+        -moz-transition: none !important;
+        box-sizing: border-box;
+    }
+    
+    /* Chapter items on mobile */
+    .chapter-player-instance.mobile-device .chapter-list .chapter-item {
+        display: block !important;
+        opacity: 1 !important;
+        padding: 10px;
+        margin-bottom: 6px;
+        transition: none !important;
+        transform: none !important;
+        -webkit-tap-highlight-color: transparent;
+        border-radius: 4px;
+    }
+    
+    .chapter-player-instance.mobile-device .timeline-container { 
+        bottom: 48px; /* Adjust if controls height changes */
+        padding: 0 10px; 
+    }
+    
+    .chapter-player-instance.mobile-device .seek-bar-wrapper { 
+        height: 12px;  /* Make the click target taller on mobile */
+    } 
+    
+    .chapter-player-instance.mobile-device .timeline-chapter-segment { 
+        height: 4px; /* Slightly taller for better visibility on mobile */
+    }
+    
+    .chapter-player-instance.mobile-device .timeline-chapter-segment:hover, 
+    .chapter-player-instance.mobile-device .timeline-chapter-segment.hovered { 
+        height: 6px; 
+        transform: translateY(-2.5px); /* Adjust for new height */
+    }
+    
+    .chapter-player-instance.mobile-device .video-controls-custom { 
+        padding: 8px 10px; 
+        gap: 4px; 
+    }
+    
+    .chapter-player-instance.mobile-device .video-controls-custom button svg { 
+        width: 18px; height: 18px; 
+    }
+    
+    .chapter-player-instance.mobile-device #cp-currentChapterTitleDisplay { 
+        max-width: 80px; font-size: 0.75em; 
+        margin-left: 5px; margin-right: 5px;
+    }
+    
+    .chapter-player-instance.mobile-device .time-display { 
+        font-size: 0.8em; min-width: 70px; 
+    }
+    
+    .chapter-player-instance.mobile-device .video-controls-custom input[type="range"].volume-bar { 
+        width: 50px; 
+    }
+    
+    .chapter-player-instance.mobile-device #cp-bigPlayPauseBtn { 
+        width: 60px; height: 60px; 
+    } 
+    
+    .chapter-player-instance.mobile-device #cp-bigPlayPauseBtn svg { 
+        width: 30px; height: 30px; 
+    }
+    
+    .chapter-player-instance.mobile-device .playback-speed-button { 
+        min-width: 30px; font-size: 0.75em !important; 
+    }
+    
+    .chapter-player-instance.mobile-device .speed-menu { 
+        left: auto; right: 0; transform: translateX(0);
+    }
+}
+
+/* Mobile fullscreen should still use the stacked layout */
+.chapter-player-instance.mobile-device:fullscreen,
+.chapter-player-instance.mobile-device:-webkit-full-screen,
+.chapter-player-instance.mobile-device:-moz-full-screen,
+.chapter-player-instance.mobile-device:-ms-fullscreen {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: black;
+    padding: 0;
+}
+
+.chapter-player-instance.mobile-device:fullscreen .video-wrapper,
+.chapter-player-instance.mobile-device:-webkit-full-screen .video-wrapper,
+.chapter-player-instance.mobile-device:-moz-full-screen .video-wrapper,
+.chapter-player-instance.mobile-device:-ms-fullscreen .video-wrapper {
+    flex: 1 !important;
+    width: 100% !important;
+    max-height: none !important;
+}
+
+.chapter-player-instance.mobile-device:fullscreen #cp-mainVideo,
+.chapter-player-instance.mobile-device:-webkit-full-screen #cp-mainVideo,
+.chapter-player-instance.mobile-device:-moz-full-screen #cp-mainVideo,
+.chapter-player-instance.mobile-device:-ms-fullscreen #cp-mainVideo {
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.chapter-player-instance.mobile-device:fullscreen .chapter-list,
+.chapter-player-instance.mobile-device:-webkit-full-screen .chapter-list,
+.chapter-player-instance.mobile-device:-moz-full-screen .chapter-list,
+.chapter-player-instance.mobile-device:-ms-fullscreen .chapter-list {
+    height: auto !important;
+    max-height: 30% !important;
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 0;
+    background-color: #f8f9fa;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Compact mode for smaller containers */
+@media (max-width: 768px) {
+    /* Full width video with floating chapter panel */
+    .chapter-player-instance {
+        display: block;
+        position: relative;
+    }
+    
+    .chapter-player-instance .video-wrapper {
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    /* Hide chapter title */
+    .chapter-player-instance #cp-chapterListTitle {
+        display: none;
+    }
+    
+    /* Float chapter list in top right corner */
+    .chapter-player-instance .chapter-list {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: auto;
+        max-width: 180px;
+        min-width: auto;
+        background: rgba(248, 249, 250, 0.9);
+        backdrop-filter: blur(5px);
+        padding: 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        margin: 0;
+        z-index: 100;
+        transition: all 0.3s ease;
+        max-height: 60px;
+        overflow: hidden;
+    }
+    
+    /* Only show active chapter by default */
+    .chapter-player-instance .chapter-list .chapter-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        border-radius: 4px;
+        display: none;
+    }
+    
+    .chapter-player-instance .chapter-list .chapter-item.active {
+        display: block;
+    }
+    
+    /* Expanded chapter list on hover */
+    .chapter-player-instance .chapter-list:hover {
+        max-height: 50vh; /* Half of viewport height */
+        overflow-y: auto;
+        padding: 10px;
+    }
+    
+    .chapter-player-instance .chapter-list:hover .chapter-item {
+        display: block;
+    }
+    
+    /* More compact chapter items */
+    .chapter-player-instance .chapter-list .chapter-item strong {
+        font-size: 0.95em;
+        margin-bottom: 2px;
+    }
+    
+    .chapter-player-instance .chapter-list .chapter-item p {
+        font-size: 0.8em;
+    }
+}
+
+/* Class-based compact mode (for smaller containers regardless of screen size) */
+.chapter-player-instance.compact-mode {
+    display: block;
+    position: relative;
+}
+
+.chapter-player-instance.compact-mode .video-wrapper {
+    width: 100%;
+    min-width: 100%;
+}
+
+/* Hide chapter title */
+.chapter-player-instance.compact-mode #cp-chapterListTitle {
+    display: none;
+}
+
+/* Float chapter list in top right corner */
+.chapter-player-instance.compact-mode .chapter-list {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: auto;
+    max-width: 200px;
+    min-width: auto;
+    background: rgba(248, 249, 250, 0.85);
+    backdrop-filter: blur(5px);
+    padding: 6px;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    margin: 0;
+    z-index: 100;
+    transition: all 0.3s ease;
+    max-height: 60px;
+    overflow: hidden;
+}
+
+/* Only show active chapter by default */
+.chapter-player-instance.compact-mode .chapter-list .chapter-item {
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    display: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.chapter-player-instance.compact-mode .chapter-list .chapter-item.active {
+    display: block;
+    /* Base opacity is now controlled by JS for smooth animation */
+    background-color: var(--vcp-chapter-item-active-bg); /* Themable */
+    color: var(--vcp-chapter-item-active-text);
+    border-color: #3a3a3a;
+    transition: opacity 0.5s linear; /* Smoother transition for opacity changes */
+}
+
+/* Expanded chapter list on hover */
+.chapter-player-instance.compact-mode .chapter-list:hover {
+    max-height: 50vh; /* Half of viewport height */
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.chapter-player-instance.compact-mode .chapter-list:hover .chapter-item {
+    display: block;
+}
+
+/* Force opacity 1 on hover regardless of progress state */
+.chapter-player-instance.compact-mode .chapter-list:hover .chapter-item.active,
+.chapter-player-instance.compact-mode .chapter-list:hover .chapter-item.active-progressing {
+    opacity: 1 !important;
+}
+
+/* More compact chapter items */
+.chapter-player-instance.compact-mode .chapter-list .chapter-item strong {
+    font-size: 0.95em;
+    margin-bottom: 2px;
+    display: block;
+    line-height: 1.2;
+}
+
+.chapter-player-instance.compact-mode .chapter-list .chapter-item p {
+    font-size: 0.8em;
+    margin: 2px 0 0 0;
+    line-height: 1.2;
+}
+
+/* Fallback for players instantiated outside a .player-container like element */
+/* These are less specific, relying on the cp- prefix for IDs */
+/* and specific classes for elements generated by ChapterPlayer. */
+
+/* Ensure direct children of the instance container are handled if it's not a flex item itself */
+.chapter-player-instance > .video-wrapper, 
+.chapter-player-instance > .chapter-list {
+    /* Basic responsiveness for direct children */
+    max-width: 100%;
+}
+
+/* Fullscreen enhancements for compact mode */
+.chapter-player-instance.compact-mode:fullscreen,
+.chapter-player-instance.compact-mode:-webkit-full-screen,
+.chapter-player-instance.compact-mode:-moz-full-screen,
+.chapter-player-instance.compact-mode:-ms-fullscreen {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: black;
+    padding: 0;
+}
+
+.chapter-player-instance.compact-mode:fullscreen .video-wrapper,
+.chapter-player-instance.compact-mode:-webkit-full-screen .video-wrapper,
+.chapter-player-instance.compact-mode:-moz-full-screen .video-wrapper,
+.chapter-player-instance.compact-mode:-ms-fullscreen .video-wrapper {
+    flex: 1 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+}
+
+.chapter-player-instance.compact-mode:fullscreen #cp-mainVideo,
+.chapter-player-instance.compact-mode:-webkit-full-screen #cp-mainVideo,
+.chapter-player-instance.compact-mode:-moz-full-screen #cp-mainVideo,
+.chapter-player-instance.compact-mode:-ms-fullscreen #cp-mainVideo {
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.chapter-player-instance.compact-mode:fullscreen .chapter-list,
+.chapter-player-instance.compact-mode:-webkit-full-screen .chapter-list,
+.chapter-player-instance.compact-mode:-moz-full-screen .chapter-list,
+.chapter-player-instance.compact-mode:-ms-fullscreen .chapter-list {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    max-width: 220px;
+    background: rgba(248, 249, 250, 0.85);
+    z-index: 100;
+}
+
+/* Ensure controls and timeline remain visible longer in fullscreen */
+.chapter-player-instance.compact-mode:fullscreen .video-controls-custom,
+.chapter-player-instance.compact-mode:-webkit-full-screen .video-controls-custom,
+.chapter-player-instance.compact-mode:-moz-full-screen .video-controls-custom,
+.chapter-player-instance.compact-mode:-ms-fullscreen .video-controls-custom,
+.chapter-player-instance.compact-mode:fullscreen .timeline-container,
+.chapter-player-instance.compact-mode:-webkit-full-screen .timeline-container,
+.chapter-player-instance.compact-mode:-moz-full-screen .timeline-container,
+.chapter-player-instance.compact-mode:-ms-fullscreen .timeline-container {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.chapter-player-instance.compact-mode:fullscreen:hover .video-controls-custom,
+.chapter-player-instance.compact-mode:-webkit-full-screen:hover .video-controls-custom,
+.chapter-player-instance.compact-mode:-moz-full-screen:hover .video-controls-custom,
+.chapter-player-instance.compact-mode:-ms-fullscreen:hover .video-controls-custom,
+.chapter-player-instance.compact-mode:fullscreen:hover .timeline-container,
+.chapter-player-instance.compact-mode:-webkit-full-screen:hover .timeline-container,
+.chapter-player-instance.compact-mode:-moz-full-screen:hover .timeline-container,
+.chapter-player-instance.compact-mode:-ms-fullscreen:hover .timeline-container {
+    opacity: 1;
+}
+
+/* Disable hover effects and transitions on mobile */
+.chapter-player-instance.mobile-device .chapter-list {
+    transition: none !important;
+    padding: 15px !important;
+    animation: none !important;
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+}
+
+.chapter-player-instance.mobile-device .chapter-list:hover,
+.chapter-player-instance.mobile-device .chapter-list:focus,
+.chapter-player-instance.mobile-device .chapter-list:active,
+.chapter-player-instance.mobile-device .chapter-list:focus-within {
+    padding: 15px !important;
+    max-height: 250px !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+.chapter-player-instance.mobile-device .chapter-list .chapter-item,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:hover,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:active,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:focus {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Prevent hover effects when touched on mobile */
+.chapter-player-instance.mobile-device .chapter-list[data-touched],
+.chapter-player-instance.mobile-device .chapter-list[data-touched]:hover, 
+.chapter-player-instance.mobile-device .chapter-list[data-touched]:focus {
+    padding: 15px !important;
+    max-height: 250px !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+.chapter-player-instance.mobile-device .chapter-list[data-touched] .chapter-item:hover {
+    transform: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+}
+
+/* Mobile-specific touch states */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item {
+    -webkit-tap-highlight-color: transparent; /* Remove default tap highlight */
+    user-select: none; /* Prevent text selection on tap */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Touch active state - brief highlight during tap */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item.touch-active {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Remove focus outlines and other browser default focus styles */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:focus,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:focus-visible,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+/* Active chapter - permanently highlighted. We extend the selector to cover
+   :hover/:focus too so the mobile hover-bg rule above can't overwrite the
+   active state — and we don't use !important, so host-page CSS can override
+   the active state in shadowDom: false mode. */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item.active,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item.active:hover,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item.active:focus,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item.active:active {
+    background-color: var(--vcp-chapter-item-active-bg);
+    color: var(--vcp-chapter-item-active-text);
+    border-color: #3a3a3a;
+}
+
+/* Touch states for mobile chapters */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:hover,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:active,
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:focus {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    background-color: #f1f3f5; /* Subtle background change instead of transform */
+    box-shadow: none !important;
+}
+
+/* Active state for touch */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item:active {
+    background-color: #e9ecef;
+}
+
+/* Active touch state */
+.chapter-player-instance.mobile-device .chapter-list .chapter-item.touch-active {
+    background-color: rgba(0, 0, 0, 0.05);
+} 

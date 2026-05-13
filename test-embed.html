@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Chapter Player Embed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .description {
+            background-color: #f8f8f8;
+            border-left: 4px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Chapter Player Embed Test</h1>
+    
+    <div class="description">
+        <p>This page demonstrates how to embed the Video Chapter Player using embed.js.</p>
+        <p>The player below is initialized from data in the data-config attribute.</p>
+    </div>
+    
+    <div class="container" >
+        <!-- Video Chapter Player Embed - Begin -->
+        <div class="video-chapter-player" data-config="{'videoUrl':'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4','posterUrl':'https://peach.blender.org/wp-content/uploads/bbb-splash.png','chapterListTitle':'Demo Chapters 📖','hideChapterListTitle':true,'isPreviewEnabled':false,'useExternalCss':true,'chapters':[{'timestamp':0,'title':'Introduction','description':'Welcome to this video'},{'timestamp':30,'title':'First Chapter','description':'This is the first main chapter'},{'timestamp':120,'title':'Second Chapter','description':'The second part begins here'},{'timestamp':240,'title':'Final Section','description':'The conclusion of the video'}]}"></div>
+        <script src="embed.js"></script>
+        <!-- Video Chapter Player Embed - End -->
+    </div>
+    
+    <div class="description" style="margin-top: 30px;">
+        <p><strong>How it works:</strong></p>
+        <ol>
+            <li>Create a div with class "video-chapter-player"</li>
+            <li>Add a data-config attribute with your player configuration as JSON (with single quotes)</li>
+            <li>Include the embed.js script which will automatically:</li>
+            <ul>
+                <li>Load chapterplayer.css and chapterplayer.js</li>
+                <li>Initialize the ChapterPlayer with your configuration</li>
+                <li>Convert single-quoted JSON to standard double-quoted JSON for parsing</li>
+            </ul>
+        </ol>
+        <p><strong>Configuration Options:</strong></p>
+        <ul>
+            <li><code>videoUrl</code>: The URL of the MP4 video to play</li>
+            <li><code>posterUrl</code>: The URL of an image to display before the video plays</li>
+            <li><code>useExternalCss</code>: Set to <code>true</code> to use a link element for CSS instead of fetching inline. This makes it easier to test CSS changes during development.</li>
+        </ul>
+    </div>
+</body>
+</html> 

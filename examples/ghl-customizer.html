@@ -1,0 +1,482 @@
+<!--
+  ===========================================================================
+  GHL Customizer — Feature Page for themarketerstoolkit.com (WordPress embed)
+  Paste the entire <div class="ghlc-wrap"> block below into a Custom HTML
+  block on the GHL Customizer WordPress page (replacing the current video +
+  toolkit promo box that sits below the orange tab nav).
+
+  Everything is scoped under .ghlc-wrap so it won't collide with the site
+  theme CSS. Inline Google Fonts. No external CSS or icon dependencies.
+  Drop the comment lines if WordPress strips them.
+  ===========================================================================
+-->
+
+<div class="ghlc-wrap">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+.ghlc-wrap { --gp: #ff6b00; --gpd: #e05a00; --gpl: #ffa659; --gpr: #7c3aed; --gprl: #a78bfa; --gpr-deep: #5b21b6; --gdark: #1a1a1a; --gdark2: #232323; --gblack: #0a0a0a; --gtext: #2a2a2a; --gtext2: #5c5c5c; --gmuted: #666; --gbg: #FAF7F2; --gpeach: #ffe8d9; --gpeach-soft: #fff1e8; --gwhite: #fff; --ggray: #f9f9f9; --gradius-sm: 4px; --gradius-md: 8px; --gradius-lg: 16px; --gshadow-sm: 0 4px 6px rgba(0,0,0,0.04); --gshadow-md: 0 8px 24px rgba(0,0,0,0.08); --gshadow-lg: 0 16px 32px rgba(0,0,0,0.12); }
+.ghlc-wrap, .ghlc-wrap * { box-sizing: border-box; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.ghlc-wrap { color: var(--gtext); background: var(--gbg); width: 100vw; margin-left: calc(50% - 50vw); position: relative; overflow-x: hidden; }
+.ghlc-wrap .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+.ghlc-wrap a { color: var(--gp); text-decoration: none; }
+.ghlc-wrap .highlight { color: var(--gp); font-weight: 700; }
+.ghlc-wrap em { font-style: italic; }
+
+/* ── INTRO (centred, text only — video walkthrough is its own section) ── */
+.ghlc-wrap .ghlc-intro { background: linear-gradient(180deg, #1f1f1f 0%, #161616 100%); color: #fff; padding: 4rem 0 4rem; position: relative; }
+.ghlc-wrap .ghlc-intro-content-center { max-width: 820px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.ghlc-wrap .ghlc-eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,107,0,0.15); color: var(--gpl); border: 1px solid rgba(255,107,0,0.4); padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.3px; margin-bottom: 1rem; text-transform: uppercase; }
+.ghlc-wrap .ghlc-wordmark { font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -2.2px; margin: 0.25rem 0 0.6rem; background: linear-gradient(135deg, #fff 0%, #ffd9b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
+.ghlc-wrap .ghlc-tagline { font-size: 1.95rem; font-weight: 700; line-height: 1.15; margin: 0 0 1rem; letter-spacing: -0.5px; color: #fff; }
+.ghlc-wrap .ghlc-tagline .accent { color: var(--gp); }
+.ghlc-wrap .ghlc-sub { font-size: 1.05rem; color: rgba(255,255,255,0.78); max-width: 680px; margin: 0 auto; line-height: 1.55; }
+.ghlc-wrap .ghlc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.85rem 1.6rem; border-radius: 4px; font-weight: 600; font-size: 1rem; cursor: pointer; border: 2px solid transparent; transition: all 0.25s; text-decoration: none; }
+.ghlc-wrap .ghlc-btn-primary { background: var(--gp); color: #fff; border-color: var(--gp); box-shadow: 0 4px 12px rgba(255,107,0,0.25); }
+.ghlc-wrap .ghlc-btn-primary:hover { background: var(--gpd); border-color: var(--gpd); transform: translateY(-2px); color: #fff; }
+.ghlc-wrap .ghlc-btn-ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.3); }
+.ghlc-wrap .ghlc-btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: #fff; color: #fff; }
+.ghlc-wrap .ghlc-btn-large { padding: 1rem 2rem; font-size: 1.05rem; }
+
+/* ── Walkthrough — wraps the existing video-chapter-player web component ── */
+.ghlc-wrap .ghlc-walkthrough { background: linear-gradient(180deg, #161616 0%, #1a1a1a 100%); padding: 0 0 5rem; position: relative; }
+.ghlc-wrap .ghlc-player-frame { background: #0e0e0e; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; margin-top: -3rem; position: relative; z-index: 5; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,107,0,0.15); }
+.ghlc-wrap .ghlc-player-frame::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gp) 0%, var(--gpr) 100%); z-index: 10; }
+.ghlc-wrap .ghlc-player-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); background: linear-gradient(180deg, rgba(255,107,0,0.08) 0%, transparent 100%); gap: 1rem; flex-wrap: wrap; }
+.ghlc-wrap .ghlc-player-header h2 { margin: 0; font-size: 1.1rem; color: #fff; font-weight: 700; letter-spacing: -0.2px; }
+.ghlc-wrap .ghlc-player-duration { font-size: 0.82rem; color: rgba(255,255,255,0.55); font-weight: 500; }
+.ghlc-wrap .ghlc-player-mount { background: #000; min-height: 360px; }
+.ghlc-wrap .ghlc-player-mount .video-chapter-player { display: block; width: 100%; }
+
+/* ── STATS STRIP ── */
+.ghlc-wrap .ghlc-stats { background: linear-gradient(135deg, var(--gpeach) 0%, #ffd9b8 100%); border-bottom: 4px solid var(--gdark); padding: 2.5rem 0; }
+.ghlc-wrap .ghlc-stat-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; text-align: center; }
+.ghlc-wrap .ghlc-stat { padding: 0.5rem 0.75rem; border-right: 1px solid rgba(34,34,34,0.12); }
+.ghlc-wrap .ghlc-stat:last-child { border-right: none; }
+.ghlc-wrap .ghlc-stat-num { font-size: 2.4rem; font-weight: 800; line-height: 1; letter-spacing: -1px; background: linear-gradient(135deg, var(--gp) 0%, var(--gpr) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.ghlc-wrap .ghlc-stat-lbl { font-size: 0.85rem; color: var(--gtext2); margin-top: 0.4rem; font-weight: 500; }
+
+/* ── FEATURES INTRO ── */
+.ghlc-wrap .ghlc-feat-intro { background: var(--gbg); padding: 4.5rem 0 2rem; text-align: center; }
+.ghlc-wrap .ghlc-feat-intro h2 { font-size: 2.2rem; color: var(--gdark); margin: 0 0 0.75rem; font-weight: 700; line-height: 1.25; }
+.ghlc-wrap .ghlc-feat-intro p { max-width: 740px; margin: 0 auto; color: var(--gtext2); font-size: 1.05rem; line-height: 1.55; }
+
+/* ── FEATURE CALLOUTS ── */
+.ghlc-wrap .ghlc-feature { padding: 3.5rem 0; position: relative; overflow: hidden; }
+.ghlc-wrap .ghlc-feature.light { background: var(--gbg); }
+.ghlc-wrap .ghlc-feature.light.alt { background: #fff; }
+.ghlc-wrap .ghlc-feature.dark { background: linear-gradient(180deg, #1c1c1c 0%, #161616 100%); }
+.ghlc-wrap .ghlc-feature.dark::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gp) 0%, var(--gpr) 100%); z-index: 3; }
+.ghlc-wrap .ghlc-feature.dark.dark-purple { background: linear-gradient(135deg, #1f1830 0%, #161616 70%); }
+.ghlc-wrap .ghlc-feature.dark.dark-purple::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 4px; background: linear-gradient(180deg, var(--gpr) 0%, var(--gp) 100%); z-index: 3; }
+.ghlc-wrap .ghlc-feature .container { position: relative; z-index: 2; }
+.ghlc-wrap .ghlc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.ghlc-wrap .ghlc-grid.reversed .ghlc-content { order: 2; }
+.ghlc-wrap .ghlc-grid.reversed .ghlc-media { order: 1; }
+.ghlc-wrap .ghlc-content { max-width: 580px; }
+.ghlc-wrap .ghlc-name { font-family: 'Poppins', sans-serif; font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -1.5px; margin: 0 0 0.85rem; background: linear-gradient(135deg, var(--gdark) 0%, #4a4a4a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: inline-block; }
+.ghlc-wrap .ghlc-feature.dark .ghlc-name { background: linear-gradient(135deg, #fff 0%, #ffd9b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.ghlc-wrap .ghlc-content h2 { font-size: 1.55rem; font-weight: 700; line-height: 1.25; margin: 0 0 0.85rem; color: var(--gtext); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-content h2 { color: rgba(255,255,255,0.95); }
+.ghlc-wrap .ghlc-content .ghlc-tag { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem; border-radius: 50px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin: 0.4rem 0 1.25rem; background: rgba(34,34,34,0.06); color: var(--gtext); border: 1px solid rgba(34,34,34,0.08); }
+.ghlc-wrap .ghlc-tag.tag-flag { background: linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05)); color: var(--gp); border-color: rgba(255,107,0,0.4); }
+.ghlc-wrap .ghlc-tag.tag-scale { background: rgba(124,58,237,0.10); color: var(--gpr); border-color: rgba(124,58,237,0.3); }
+.ghlc-wrap .ghlc-tag.tag-fix { background: rgba(5,150,105,0.10); color: #059669; border-color: rgba(5,150,105,0.3); }
+.ghlc-wrap .ghlc-tag.tag-contact { background: rgba(8,145,178,0.10); color: #0891b2; border-color: rgba(8,145,178,0.3); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-tag { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.88); border-color: rgba(255,255,255,0.14); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-tag.tag-flag { background: linear-gradient(135deg, rgba(255,107,0,0.28), rgba(255,107,0,0.08)); color: #ffb27a; border-color: rgba(255,107,0,0.5); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-tag.tag-scale { background: rgba(167,139,250,0.22); color: #c4b5fd; border-color: rgba(167,139,250,0.5); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-tag.tag-fix { background: rgba(16,185,129,0.20); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-tag.tag-contact { background: rgba(56,189,248,0.18); color: #7dd3fc; border-color: rgba(56,189,248,0.4); }
+.ghlc-wrap .ghlc-lede { font-size: 1.05rem; color: var(--gtext2); font-weight: 400; margin: 0 0 1rem; line-height: 1.55; }
+.ghlc-wrap .ghlc-feature.dark .ghlc-lede { color: rgba(255,255,255,0.78); }
+.ghlc-wrap .ghlc-list { list-style: none; margin: 1.25rem 0 1.5rem; padding: 0; }
+.ghlc-wrap .ghlc-item { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.5rem; font-size: 0.92rem; color: var(--gtext); line-height: 1.45; }
+.ghlc-wrap .ghlc-feature.dark .ghlc-item { color: rgba(255,255,255,0.86); }
+.ghlc-wrap .ghlc-item::before { content: '✓'; color: var(--gp); font-weight: 800; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,107,0,0.12); display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; margin-top: 1px; }
+.ghlc-wrap .ghlc-feature.dark .ghlc-item::before { background: rgba(255,107,0,0.22); }
+.ghlc-wrap .ghlc-learn { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--gp); margin-top: 0.5rem; font-size: 1rem; border-bottom: 2px solid transparent; padding-bottom: 2px; transition: all 0.25s; }
+.ghlc-wrap .ghlc-learn:hover { color: var(--gpd); gap: 0.7rem; border-bottom-color: var(--gp); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-learn { color: var(--gpl); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-learn:hover { color: #fff; border-bottom-color: var(--gp); }
+.ghlc-wrap .ghlc-media { position: relative; border-radius: var(--gradius-lg); overflow: hidden; box-shadow: var(--gshadow-md); min-height: 340px; display: flex; }
+.ghlc-wrap .ghlc-media .ghlc-placeholder { background: repeating-linear-gradient(135deg, #f1ece4 0 12px, #e9e2d5 12px 24px); border: 2px dashed rgba(34,34,34,0.25); color: var(--gmuted); width: 100%; min-height: 340px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; font-size: 0.92rem; line-height: 1.5; border-radius: 0; }
+.ghlc-wrap .ghlc-feature.dark .ghlc-placeholder { background: repeating-linear-gradient(135deg, #2a2a2a 0 12px, #242424 12px 24px); border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.7); }
+.ghlc-wrap .ghlc-placeholder strong { display: block; margin-bottom: 0.4rem; font-size: 1rem; color: var(--gdark); }
+.ghlc-wrap .ghlc-feature.dark .ghlc-placeholder strong { color: #fff; }
+.ghlc-wrap .ghlc-chip { position: absolute; top: 14px; left: 14px; z-index: 5; background: rgba(255,255,255,0.97); color: var(--gdark); padding: 0.4rem 0.85rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600; box-shadow: var(--gshadow-sm); display: inline-flex; align-items: center; gap: 0.45rem; }
+.ghlc-wrap .ghlc-feature.dark .ghlc-chip { background: rgba(34,34,34,0.95); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+.ghlc-wrap .ghlc-chip .ghlc-pip { width: 18px; height: 18px; border-radius: 4px; background: linear-gradient(135deg, var(--gp), var(--gpd)); }
+
+/* ── 30+ MORE GRID ── */
+.ghlc-wrap .ghlc-more-grid { background: linear-gradient(180deg, #181818 0%, #131313 100%); padding: 5rem 0; position: relative; overflow: hidden; }
+.ghlc-wrap .ghlc-more-grid::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gpr) 0%, var(--gp) 100%); }
+.ghlc-wrap .ghlc-more-grid::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gp) 0%, var(--gpr) 100%); }
+.ghlc-wrap .ghlc-more-grid .container { position: relative; z-index: 2; }
+.ghlc-wrap .ghlc-more-grid h2 { color: #fff; font-size: 2rem; text-align: center; margin: 0 0 0.5rem; font-weight: 700; }
+.ghlc-wrap .ghlc-more-grid h2 + p { color: rgba(255,255,255,0.65); text-align: center; max-width: 680px; margin: 0 auto 3rem; font-size: 1rem; }
+.ghlc-wrap .ghlc-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.ghlc-wrap .ghlc-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--gradius-md); padding: 1.75rem 1.5rem; backdrop-filter: blur(8px); transition: all 0.25s; display: flex; flex-direction: column; text-decoration: none; color: rgba(255,255,255,0.85); position: relative; overflow: hidden; }
+.ghlc-wrap .ghlc-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gp); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
+.ghlc-wrap .ghlc-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.07); border-color: rgba(255,107,0,0.4); color: rgba(255,255,255,0.95); }
+.ghlc-wrap .ghlc-card:hover::before { transform: scaleX(1); }
+.ghlc-wrap .ghlc-card-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,107,0,0.14); color: var(--gp); display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 1rem; font-weight: 800; }
+.ghlc-wrap .ghlc-card h3 { font-size: 1.05rem; margin: 0 0 0.5rem; color: #fff; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; font-weight: 700; }
+.ghlc-wrap .ghlc-card p { font-size: 0.88rem; color: rgba(255,255,255,0.65); margin: 0 0 1rem; flex-grow: 1; line-height: 1.5; }
+.ghlc-wrap .ghlc-card-link { font-size: 0.85rem; font-weight: 700; color: var(--gp); margin-top: auto; }
+.ghlc-wrap .ghlc-new-badge { background: var(--gp); color: #fff; font-size: 0.6rem; padding: 2px 6px; border-radius: 50px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* ── HOW IT WORKS ── */
+.ghlc-wrap .ghlc-how { background: var(--ggray); padding: 5rem 0; text-align: center; border-top: 1px solid rgba(255,107,0,0.15); border-bottom: 8px solid var(--gdark); }
+.ghlc-wrap .ghlc-how h2 { font-size: 2rem; color: var(--gdark); margin: 0 0 0.5rem; font-weight: 700; }
+.ghlc-wrap .ghlc-how > .container > p { color: var(--gtext2); margin: 0 auto 3rem; max-width: 620px; font-size: 1rem; }
+.ghlc-wrap .ghlc-steps { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 1rem; align-items: stretch; max-width: 1000px; margin: 0 auto; }
+.ghlc-wrap .ghlc-step { background: #fff; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); padding: 2.25rem 1.5rem 2rem; position: relative; margin-top: 18px; transition: all 0.3s; }
+.ghlc-wrap .ghlc-step::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gp); border-radius: 12px 12px 0 0; }
+.ghlc-wrap .ghlc-step:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.10); }
+.ghlc-wrap .ghlc-step-num { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; border-radius: 50%; background: var(--gp); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(255,107,0,0.3); }
+.ghlc-wrap .ghlc-step-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,107,0,0.08); color: var(--gp); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem; }
+.ghlc-wrap .ghlc-step h3 { font-size: 1.2rem; margin: 0 0 0.5rem; color: var(--gdark); font-weight: 700; }
+.ghlc-wrap .ghlc-step p { color: var(--gmuted); font-size: 0.95rem; margin: 0; line-height: 1.5; }
+.ghlc-wrap .ghlc-step-conn { align-self: center; width: 60px; border-bottom: 2px dashed var(--gp); opacity: 0.6; }
+
+/* ── TESTIMONIALS ── */
+.ghlc-wrap .ghlc-testi { background: var(--gpeach-soft); padding: 5rem 0; }
+.ghlc-wrap .ghlc-testi h2 { font-size: 2rem; color: var(--gdark); text-align: center; margin: 0 0 0.5rem; font-weight: 700; }
+.ghlc-wrap .ghlc-testi > .container > p.ghlc-sub-h { color: var(--gtext2); text-align: center; max-width: 620px; margin: 0 auto 3rem; font-size: 1rem; }
+.ghlc-wrap .ghlc-testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
+.ghlc-wrap .ghlc-testi-card { background: #fff; border-radius: var(--gradius-lg); box-shadow: var(--gshadow-md); padding: 2rem; }
+.ghlc-wrap .ghlc-quote { font-family: Georgia, serif; font-size: 3rem; line-height: 0.6; color: var(--gp); display: block; margin-bottom: 1rem; }
+.ghlc-wrap .ghlc-testi-card blockquote { font-size: 1rem; font-style: italic; color: var(--gtext); margin: 0 0 1.5rem; line-height: 1.55; }
+.ghlc-wrap .ghlc-testi-author { display: flex; align-items: center; gap: 0.8rem; }
+.ghlc-wrap .ghlc-avatar { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--gpl); background: var(--gpeach-soft); display: inline-flex; align-items: center; justify-content: center; color: var(--gp); font-weight: 700; font-size: 1rem; }
+.ghlc-wrap .ghlc-testi-author h4 { margin: 0; font-size: 1rem; color: var(--gdark); font-weight: 700; }
+.ghlc-wrap .ghlc-testi-author p { margin: 0; color: var(--gmuted); font-size: 0.85rem; }
+
+/* ── FINAL CTA ── */
+.ghlc-wrap .ghlc-final { background: linear-gradient(180deg, #1f1f1f 0%, #161616 100%); color: #fff; text-align: center; padding: 5rem 0; position: relative; }
+.ghlc-wrap .ghlc-final::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--gp) 0%, var(--gpr) 100%); }
+.ghlc-wrap .ghlc-final h2 { font-size: 2.1rem; color: #fff; max-width: 800px; margin: 0 auto 1rem; line-height: 1.25; font-weight: 700; }
+.ghlc-wrap .ghlc-final p { color: rgba(255,255,255,0.78); max-width: 680px; margin: 0 auto 2rem; font-size: 1.05rem; }
+@keyframes ghlc-pulse { 0% { box-shadow: 0 0 0 0 rgba(255,107,0,0.45); } 70% { box-shadow: 0 0 0 14px rgba(255,107,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,107,0,0); } }
+.ghlc-wrap .ghlc-final .ghlc-btn-large { animation: ghlc-pulse 2.2s infinite; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) { .ghlc-wrap .ghlc-cards { grid-template-columns: repeat(3, 1fr); } .ghlc-wrap .ghlc-stat-strip { grid-template-columns: repeat(3, 1fr); } .ghlc-wrap .ghlc-stat:nth-child(3) { border-right: none; } }
+@media (max-width: 900px) { .ghlc-wrap .ghlc-grid { grid-template-columns: 1fr; gap: 2rem; } .ghlc-wrap .ghlc-grid.reversed .ghlc-content, .ghlc-wrap .ghlc-grid.reversed .ghlc-media { order: initial; } .ghlc-wrap .ghlc-cards, .ghlc-wrap .ghlc-testi-grid { grid-template-columns: repeat(2, 1fr); } .ghlc-wrap .ghlc-steps { grid-template-columns: 1fr; } .ghlc-wrap .ghlc-step-conn { display: none; } .ghlc-wrap .ghlc-wordmark { font-size: 3rem; letter-spacing: -1.6px; } .ghlc-wrap .ghlc-tagline { font-size: 1.55rem; } .ghlc-wrap .ghlc-name { font-size: 2.1rem; } .ghlc-wrap .ghlc-content h2 { font-size: 1.35rem; } .ghlc-wrap .ghlc-player-frame { margin-top: -1.5rem; } }
+@media (max-width: 560px) { .ghlc-wrap .ghlc-cards, .ghlc-wrap .ghlc-testi-grid, .ghlc-wrap .ghlc-stat-strip { grid-template-columns: 1fr; } .ghlc-wrap .ghlc-stat { border-right: none; border-bottom: 1px solid rgba(34,34,34,0.10); padding-bottom: 1rem; } .ghlc-wrap .ghlc-wordmark { font-size: 2.4rem; letter-spacing: -1.3px; } .ghlc-wrap .ghlc-tagline { font-size: 1.35rem; } .ghlc-wrap .ghlc-name { font-size: 1.85rem; } .ghlc-wrap .ghlc-feature { padding: 2.5rem 0; } }
+</style>
+
+
+<!-- ============================================================ INTRO ============================================================ -->
+<section class="ghlc-intro">
+  <div class="container">
+    <div class="ghlc-intro-content-center">
+      <span class="ghlc-eyebrow">★ Included in Agency Pro</span>
+      <h1 class="ghlc-wordmark">GHL Customizer</h1>
+      <p class="ghlc-tagline">Extend HighLevel. <span class="accent">Without code.</span></p>
+      <p class="ghlc-sub">Custom buttons in every contact. AI-built mini-apps that already know who they're talking to. A different menu, theme, and product for every vertical you serve. Plus 51 fixes for everything HighLevel got wrong.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ WALKTHROUGH (your existing video-chapter-player) ============================================================ -->
+<section class="ghlc-walkthrough">
+  <div class="container">
+    <div class="ghlc-player-frame">
+      <div class="ghlc-player-header">
+        <h2>2026 — GHL Customizer Walkthrough</h2>
+        <span class="ghlc-player-duration">⏱ 8:57 · 13 chapters</span>
+      </div>
+      <div class="ghlc-player-mount">
+        <div class="video-chapter-player" data-config="{'videoUrl': 'https://assets.cdn.filesafe.space/uhcbimOZnVDulC9iuZGJ/media/69dd1d35ef1dbfe76e026194.mp4','chapterListTitle': 'Chapters 📖','hideChapterListTitle': true,'isPreviewEnabled': true,'chapters': [{'id': 'import-1776099135483-0','timestamp': 0,'title': 'Introduction to GHL Customizer','description': ''},{'id': 'import-1776099135483-1','timestamp': 39,'title': 'Craft your own menu with folders','description': ''},{'id': 'import-1776099135483-2','timestamp': 94,'title': 'Menu folder style options','description': ''},{'id': 'import-1776099135483-3','timestamp': 108,'title': 'Header buttons for support and more','description': ''},{'id': 'import-1776099135483-4','timestamp': 155,'title': 'Contact buttons for better in app experience','description': ''},{'id': 'import-1776099135483-5','timestamp': 234,'title': 'Opportunity tabs for embedded app views','description': ''},{'id': 'import-1776099135483-6','timestamp': 243,'title': 'Scaling power with custom values and merge codes','description': ''},{'id': 'import-1776099135483-7','timestamp': 279,'title': 'Modifying quick actions','description': ''},{'id': 'import-1776099135483-8','timestamp': 301,'title': 'Replacing the dashboard','description': ''},{'id': 'import-1776099135483-9','timestamp': 344,'title': 'Upgrade the GHL interface','description': ''},{'id': 'import-1776099135483-10','timestamp': 390,'title': 'Sell packages with automatic configurations','description': ''},{'id': 'import-1776099135483-11','timestamp': 435,'title': 'SaaS config plan integration','description': ''},{'id': 'import-1776099135483-12','timestamp': 515,'title': 'Support and change log resources','description': ''}]}"></div>
+        <script src="../embed.js"></script>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ STATS ============================================================ -->
+<section class="ghlc-stats">
+  <div class="container">
+    <div class="ghlc-stat-strip">
+      <div class="ghlc-stat"><div class="ghlc-stat-num">1,000+</div><div class="ghlc-stat-lbl">HighLevel agencies trust it</div></div>
+      <div class="ghlc-stat"><div class="ghlc-stat-num">50,000+</div><div class="ghlc-stat-lbl">Sub-accounts running it</div></div>
+      <div class="ghlc-stat"><div class="ghlc-stat-num">50+</div><div class="ghlc-stat-lbl">Point-and-click features</div></div>
+      <div class="ghlc-stat"><div class="ghlc-stat-num">6</div><div class="ghlc-stat-lbl">Places to ship AI-built apps</div></div>
+      <div class="ghlc-stat"><div class="ghlc-stat-num">Monthly</div><div class="ghlc-stat-lbl">New features &amp; snippets</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURES INTRO ============================================================ -->
+<section class="ghlc-feat-intro" id="features">
+  <div class="container">
+    <h2>Everything <span class="highlight">native HighLevel</span> won't let you do</h2>
+    <p>Eight feature areas. Each one solves a real problem. The whole thing is included in your Agency Pro plan.</p>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 1 — Vibe Prompt Builder (dark + purple) ============================================================ -->
+<section class="ghlc-feature dark dark-purple">
+  <div class="container">
+    <div class="ghlc-grid">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Vibe Prompt Builder</h3>
+        <h2>Stop paying developers. Ship apps with AI.</h2>
+        <span class="ghlc-tag tag-flag">★ Flagship</span>
+        <p class="ghlc-lede">Build real CRM apps inside HighLevel by typing a prompt. ChatGPT, Lovable, or HighLevel's own Vibe builder — we give them everything they need.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">Apps already know who the contact is</li>
+          <li class="ghlc-item">Onboarding dashboards that save back and track progress</li>
+          <li class="ghlc-item">Your custom fields &amp; values baked in — AI never guesses</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See the Prompt Builder →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Vibe Prompt Builder</span>
+        <div class="ghlc-placeholder"><strong>FEATURE VIDEO PLACEHOLDER</strong>7-step wizard → AI builds the app → app opens from a contact button with the contact pre-filled, saves back, shows progress.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 2 — Location Groups (light alt) ============================================================ -->
+<section class="ghlc-feature light alt">
+  <div class="container">
+    <div class="ghlc-grid reversed">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Location Groups</h3>
+        <h2>One agency. <span class="highlight">A different product per vertical.</span></h2>
+        <span class="ghlc-tag tag-scale">⚡ Scale</span>
+        <p class="ghlc-lede">Real estate gets one menu and theme. Mortgage gets a different one. Insurance gets a third. All from one HighLevel agency. Sub-accounts auto-assign by plan, snapshot, sheet, or webhook.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">5 ways to auto-assign sub-accounts (Webhooks coming)</li>
+          <li class="ghlc-item">Different theme + menu + buttons per group</li>
+          <li class="ghlc-item">Average agency runs 15 groups across 77 sub-accounts</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See how it scales →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Location Groups</span>
+        <div class="ghlc-placeholder"><strong>FEATURE DIAGRAM PLACEHOLDER</strong>One agency branching into 3 vertical groups (Real Estate / Mortgage / Insurance), each with its own menu, theme, and buttons. Animated flow showing a new sub-account joining via webhook.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 3 — Header Buttons (dark) ============================================================ -->
+<section class="ghlc-feature dark">
+  <div class="container">
+    <div class="ghlc-grid">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Header Buttons</h3>
+        <h2>Branded utility nav on every screen.</h2>
+        <span class="ghlc-tag">🔝 Global Actions</span>
+        <p class="ghlc-lede">Drop branded buttons into the global HighLevel header — same nav from every page. Help, training, internal tools, escalations, AI shortcuts. Folder dropdowns, role gating, conditional show.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">1,791 header buttons in production across 399 agencies</li>
+          <li class="ghlc-item">Folder dropdowns group related actions cleanly</li>
+          <li class="ghlc-item">Real labels: "GoatGenie AI" · "Knowledge Base" · "Submit Escalation"</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See header buttons →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Header Buttons</span>
+        <div class="ghlc-placeholder"><strong>FEATURE VIDEO PLACEHOLDER</strong>Branded header bar across every screen — 5 buttons including a folder dropdown. Cursor hovers, opens the folder, persists across sub-account screens.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 4 — Contact Buttons (light alt) ============================================================ -->
+<section class="ghlc-feature light alt">
+  <div class="container">
+    <div class="ghlc-grid reversed">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Contact Buttons</h3>
+        <h2>Turn every contact into your team's command centre.</h2>
+        <span class="ghlc-tag tag-contact">👤 Per-Contact</span>
+        <p class="ghlc-lede">Drop action buttons on every contact record — toggle tags, jump pipelines, fire workflows, open pre-filled forms. The actions your team takes 50 times a day, now one click away.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">3 types: <strong>link</strong> · <strong>folder</strong> · <strong>action</strong> — plus tag-driven conditional show</li>
+          <li class="ghlc-item">629 contact buttons in production — top agency has 141</li>
+          <li class="ghlc-item">Real labels: "AI Agent ON" · "Disposition" · "MLO Pipeline" · "Send Fax"</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See contact buttons →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Contact Buttons</span>
+        <div class="ghlc-placeholder"><strong>FEATURE VIDEO PLACEHOLDER</strong>Open a contact, click "Disposition" folder → "No Answer" → contact gets tagged, workflow fires, SMS sends. Then click "AI Agent ON" — badge changes colour.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 5 — Menu Engine (dark) ============================================================ -->
+<section class="ghlc-feature dark">
+  <div class="container">
+    <div class="ghlc-grid">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Menu Engine</h3>
+        <h2>Your users don't need to see HighLevel's upsells.</h2>
+        <span class="ghlc-tag">🧭 Navigation</span>
+        <p class="ghlc-lede">Hide Memberships, the App Marketplace, the Mobile App promo. Rename Opportunities to "Leads". Replace the whole left rail with a clean flyout. Speak your customers' language.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">30 agencies hide the App Marketplace · 30 hide Memberships</li>
+          <li class="ghlc-item">10 renamed Opportunities → "Leads" / "Pipelines"</li>
+          <li class="ghlc-item">Block routes entirely — even direct URL access</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See the menu engine →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Menu Engine</span>
+        <div class="ghlc-placeholder"><strong>FEATURE VIDEO PLACEHOLDER</strong>Side-by-side: stock HighLevel left rail (cluttered) vs. branded flyout. Quick cuts: renaming Opportunities → Leads, hiding Memberships, blocking a route.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 6 — Solution Snippets (light alt) ============================================================ -->
+<section class="ghlc-feature light alt">
+  <div class="container">
+    <div class="ghlc-grid reversed">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Solution Snippets</h3>
+        <h2>51 fixes for everything <span class="highlight">HighLevel got wrong.</span></h2>
+        <span class="ghlc-tag tag-fix">⚙️ 51 Snippets</span>
+        <p class="ghlc-lede">Auto-save in contact details. Drag-anywhere pipelines. Notification sounds that actually work. Save buttons that don't hide at the bottom of the page. One toggle panel. 96% adoption.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">96% of customers turn snippets on the moment they install</li>
+          <li class="ghlc-item">Ctrl+Shift+H blurs PII for client demos</li>
+          <li class="ghlc-item">New snippets ship monthly — included with your plan</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See all 51 snippets →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Solution Snippets</span>
+        <div class="ghlc-placeholder"><strong>FEATURE COLLAGE PLACEHOLDER</strong>6–9 annotated GIFs: auto-save, drag-anywhere pipeline, refresh button, search-in-additional-info, notification badge, title-tag update, blur-for-demos, calculate-age, address-autocomplete.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 7 — Opportunity Tabs (dark + purple) ============================================================ -->
+<section class="ghlc-feature dark dark-purple">
+  <div class="container">
+    <div class="ghlc-grid">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Opportunity Tabs</h3>
+        <h2>Turn every deal into a vertical-specific workspace.</h2>
+        <span class="ghlc-tag">📋 Per-Deal</span>
+        <p class="ghlc-lede">Add custom tabs inside the opportunity view — intake forms, lender info, e-signatures, disclosures. Pre-filled with the contact's data. No tab-switching, no copy-paste.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">Real tabs in production: "Disclosure Desk" · "Initial VA Lead Form" · "OEP Client Responses"</li>
+          <li class="ghlc-item">Build the tab content with the Vibe Prompt Builder — no code</li>
+          <li class="ghlc-item">Different tab sets per location group</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See opportunity tabs →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Opportunity Tabs</span>
+        <div class="ghlc-placeholder"><strong>FEATURE VIDEO PLACEHOLDER</strong>Mortgage opportunity modal with 5 branded tabs: Disclosure Desk · Title Company Info · Lender / Loan Info · Realtor Info · Processing Submission. Click between them, each pre-fills.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURE 8 — Role Locks (light alt) ============================================================ -->
+<section class="ghlc-feature light alt">
+  <div class="container">
+    <div class="ghlc-grid reversed">
+      <div class="ghlc-content">
+        <h3 class="ghlc-name">Role Locks</h3>
+        <h2>Protect your IP. Simplify what users see.</h2>
+        <span class="ghlc-tag">🔒 Lock-Down</span>
+        <p class="ghlc-lede">Stop customers copying your workflows, snapshots, and custom fields. Hide what you sold them, show what they need to use it. Per-role visibility on every menu item, button, tab, and settings section.</p>
+        <ul class="ghlc-list">
+          <li class="ghlc-item">Lock 23 HighLevel settings sections per role</li>
+          <li class="ghlc-item">Hide trigger / campaign / field folders by keyword</li>
+          <li class="ghlc-item">Block routes entirely — URL typing won't bypass it</li>
+        </ul>
+        <a href="#" class="ghlc-learn">See role locks →</a>
+      </div>
+      <div class="ghlc-media">
+        <span class="ghlc-chip"><span class="ghlc-pip"></span> Role Locks</span>
+        <div class="ghlc-placeholder"><strong>FEATURE VIDEO PLACEHOLDER</strong>Split screen: same sub-account viewed as Admin (full menu) vs Account User (most settings gone, IP folders hidden). Toggle flips the view.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 30+ MORE GRID ============================================================ -->
+<section class="ghlc-more-grid">
+  <div class="container">
+    <h2>Plus 30+ more power features</h2>
+    <p>Each of these earns its own page. Here's the short version.</p>
+    <div class="ghlc-cards">
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">⚡</div><h3>Quick Actions</h3><p>Branded action launchers your team uses every day. 547 agencies, 4,916 in production.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">{ }</div><h3>Smart Onboarding Form</h3><p>One form. Every placeholder in their snapshot personalises automatically. Zero support tickets.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">{{x}}</div><h3>Merge Codes Everywhere</h3><p>Drop a contact name, user email, or custom value into any URL, label, or tooltip.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">🔗</div><h3>Webhook Automation <span class="ghlc-new-badge">NEW</span></h3><p>Stripe payment → sub-account joins Premium group. Real-time, no glue code.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">📞</div><h3>Post-Call Actions</h3><p>Log disposition, fire SMS, move pipeline — automatically when the call ends.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">🏠</div><h3>Custom Homepage</h3><p>Land users on your branded dashboard, an external app, or auto-redirect them.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">🌍</div><h3>Translations</h3><p>Ship HighLevel in any language — or in your industry's vocabulary. 132 agencies use this.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">🔍</div><h3>Smart List Upgrades</h3><p>Fuzzy search, refresh buttons, page-size memory, custom appointment views.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">✓</div><h3>Custom Check-In</h3><p>Per-account branded CTA for booking, intake, or check-in flows.</p><span class="ghlc-card-link">Learn more →</span></a>
+      <a href="#" class="ghlc-card"><div class="ghlc-card-icon">🚀</div><h3>Custom Launchpad</h3><p>Replace HighLevel's default launchpad with your own onboarding cards.</p><span class="ghlc-card-link">Learn more →</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ HOW IT WORKS ============================================================ -->
+<section class="ghlc-how">
+  <div class="container">
+    <h2>Transform your HighLevel in <span class="highlight">minutes</span></h2>
+    <p>No developer, no waiting on a roadmap, no support tickets to HighLevel.</p>
+    <div class="ghlc-steps">
+      <div class="ghlc-step"><div class="ghlc-step-num">1</div><div class="ghlc-step-icon">⬇</div><h3>Install the Customizer</h3><p>One-click connect to your HighLevel agency account.</p></div>
+      <div class="ghlc-step-conn"></div>
+      <div class="ghlc-step"><div class="ghlc-step-num">2</div><div class="ghlc-step-icon">⚙</div><h3>Configure or prompt</h3><p>Point-and-click — or paste a prompt into ChatGPT.</p></div>
+      <div class="ghlc-step-conn"></div>
+      <div class="ghlc-step"><div class="ghlc-step-num">3</div><div class="ghlc-step-icon">✨</div><h3>See instant changes</h3><p>Live updates across every linked sub-account, instantly.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ TESTIMONIALS ============================================================ -->
+<section class="ghlc-testi">
+  <div class="container">
+    <h2>Don't just take our word for it.</h2>
+    <p class="ghlc-sub-h">500+ HighLevel agencies use the Customizer to ship a SaaS they're actually proud of.</p>
+    <div class="ghlc-testi-grid">
+      <div class="ghlc-testi-card">
+        <span class="ghlc-quote">"</span>
+        <blockquote>I knew Toolkit was cool, but I didn't realise how many features we used every day were because of it — until we went without it. The auto-save, the select-all — pure gold.</blockquote>
+        <div class="ghlc-testi-author"><div class="ghlc-avatar">BL</div><div><h4>Bonni J. Lee</h4><p>Digital Marketing Specialist</p></div></div>
+      </div>
+      <div class="ghlc-testi-card">
+        <span class="ghlc-quote">"</span>
+        <blockquote>Before the Toolkit, customers would log into my white label and feel confused. Now I can hide menus, reduce overwhelm, and customise the experience to fit my brand and industry.</blockquote>
+        <div class="ghlc-testi-author"><div class="ghlc-avatar">JE</div><div><h4>Jeromy</h4><p>Agency Owner</p></div></div>
+      </div>
+      <div class="ghlc-testi-card">
+        <span class="ghlc-quote">"</span>
+        <blockquote>The Customizer helped me do customisations that would've needed a developer — and it would've been a nightmare. The Toolkit lets me configure things once, so I'm not setting up hundreds of accounts.</blockquote>
+        <div class="ghlc-testi-author"><div class="ghlc-avatar">GW</div><div><h4>Glenn Wasserman</h4><p>Agency Owner</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FINAL CTA ============================================================ -->
+<section class="ghlc-final">
+  <div class="container">
+    <h2>Ready to ship the HighLevel SaaS you've always envisioned?</h2>
+    <p>The GHL Customizer is included with Agency Pro. Already a member? It's waiting in your dashboard.</p>
+    <a href="/pricing" class="ghlc-btn ghlc-btn-primary ghlc-btn-large">View Plans &amp; Get Started →</a>
+  </div>
+</section>
+
+</div>
+<!-- ============================================================ END GHL Customizer page ============================================================ -->

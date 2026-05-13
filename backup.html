@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Chapter Editor - Segmented Timeline (Corrected Gaps & Hover)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: #1c2938;
+            margin-top: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 2.2em;
+        }
+        h2 {
+            font-size: 1.6em;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h3 {
+            font-size: 1.3em;
+            color: #34495e;
+        }
+
+        .player-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 35px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e7e9ec;
+        }
+
+        .video-wrapper {
+            flex: 3 1 600px;
+            min-width: 300px;
+            position: relative; 
+            background-color: #000;
+            border-radius: 8px;
+            overflow: visible; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        #mainVideo {
+            width: 100%;
+            height: auto;
+            border-radius: 8px; 
+            display: block;
+        }
+        
+        .big-play-button-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.3); 
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            z-index: 10; 
+        }
+        .big-play-button-overlay.hidden {
+            opacity: 0;
+            pointer-events: none; 
+        }
+        .big-play-button-overlay:hover {
+            background-color: rgba(0, 0, 0, 0.45);
+        }
+
+        #bigPlayPauseBtn {
+            background-color: rgba(30, 30, 30, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 80px; 
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        #bigPlayPauseBtn:hover {
+            transform: scale(1.1);
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        #bigPlayPauseBtn svg {
+            width: 40px; 
+            height: 40px;
+            fill: #ffffff;
+        }
+        #bigPlayPauseBtn .icon { display: none; }
+        #bigPlayPauseBtn .icon.active { display: inline-block; }
+
+        .timeline-container { 
+            position: absolute;
+            bottom: 50px; 
+            left: 0;
+            right: 0;
+            padding: 0 15px; 
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 15; 
+            height: 30px; /* Increased height for tooltip positioning */
+        }
+        .video-wrapper:hover .timeline-container,
+        .video-wrapper .timeline-container.visible { 
+             opacity: 1;
+        }
+
+        .seek-bar-wrapper { 
+            width: 100%; 
+            position: relative; 
+            height: 12px; /* Height to contain segments and allow hover growth */
+            display: flex; 
+            align-items: center; 
+            /* background: transparent; /* Let player background show through gaps */
+            border-radius: 5px; 
+            cursor: pointer;
+            top: 50%; 
+            transform: translateY(-50%);
+        }
+        
+        .timeline-chapter-segment {
+            height: 6px; /* Default thin bar height */
+            background-color: #D1D5DB; /* Light gray for unplayed part */
+            border-radius: 3px;
+            transition: height 0.15s ease-out, transform 0.15s ease-out, background-color 0.15s ease-out;
+            position: relative; 
+            overflow: hidden; 
+            cursor: pointer;
+            display: flex; 
+            align-items: center; 
+            box-sizing: border-box;
+        }
+        .timeline-chapter-segment .progress-fill {
+            position: absolute;
+            top:0; left:0; height: 100%;
+            background-color: #FF0000; /* YouTube red */
+            border-radius: 3px; /* Match parent's rounding */
+            transition: width 0.05s linear; 
+        }
+        .timeline-chapter-segment.hovered {
+            height: 10px; /* Thicker on hover */
+            transform: translateY(-2px); /* Adjust to make it grow upwards from center */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+            z-index: 5; 
+        }
+        .timeline-chapter-segment.hovered .progress-fill {
+            background-color: #cc0000; /* Slightly darker red on hover for played part */
+        }
+
+        .timeline-gap-segment {
+            width: 5px; /* Wider gap */
+            height: 100%; 
+            flex-shrink: 0; 
+            background-color: transparent; /* This makes it a true gap */
+        }
+       
+        #seekBarCustom { 
+            -webkit-appearance: none; appearance: none;
+            width: 100%; 
+            height: 100%; 
+            background: transparent; 
+            cursor: pointer; outline: none; 
+            position: absolute; 
+            top:0; left: 0;
+            z-index: 3; 
+            margin: 0; padding: 0;
+        }
+        #customThumb { 
+            width: 14px; height: 14px; 
+            background: #FF0000; 
+            border-radius: 50%; 
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%); 
+            z-index: 4; 
+            pointer-events: none; 
+            display: none; 
+            border: 2px solid white; /* Add border to thumb for visibility */
+        }
+        #seekBarCustom::-webkit-slider-thumb { 
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; 
+            background: transparent; 
+            cursor: pointer; 
+        }
+        #seekBarCustom::-moz-range-thumb {
+            width: 20px; height: 20px; background: transparent;
+            border: none; border-radius: 50%; cursor: pointer;
+        }
+        
+        .seek-bar-tooltip { 
+            position: absolute;
+            bottom: 100%; 
+            margin-bottom: 12px; 
+            left: 0; 
+            transform: translateX(-50%); 
+            background-color: rgba(28, 28, 28, 0.95); 
+            color: #fff;
+            padding: 10px 16px; 
+            border-radius: 8px; 
+            font-size: 1em; 
+            white-space: nowrap;
+            display: none; 
+            z-index: 30; 
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+        .seek-bar-tooltip .tooltip-title {
+            display: block;
+            font-size: 1.2em; 
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .seek-bar-tooltip .tooltip-time {
+            display: block;
+            font-size: 0.9em;
+            color: #b8b8b8; 
+        }
+
+        .video-controls-custom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(20, 20, 20, 0.85); 
+            backdrop-filter: blur(5px); 
+            padding: 8px 15px; 
+            display: flex;
+            align-items: center;
+            gap: 8px; 
+            opacity: 0; 
+            transition: opacity 0.3s ease-in-out;
+            border-bottom-left-radius: 8px; 
+            border-bottom-right-radius: 8px; 
+            z-index: 20; 
+        }
+
+        .video-wrapper:hover .video-controls-custom,
+        .video-wrapper .video-controls-custom.visible { 
+            opacity: 1;
+        }
+
+        .video-controls-custom button {
+            background: none; border: none; color: #e0e0e0; 
+            padding: 6px; cursor: pointer; line-height: 1; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: color 0.2s ease, transform 0.2s ease;
+            position: relative; 
+        }
+        .video-controls-custom button svg {
+            width: 20px; height: 20px; fill: currentColor; 
+        }
+        .video-controls-custom button:hover {
+            color: #ffffff; transform: scale(1.1);
+        }
+        .video-controls-custom button .icon { display: none; }
+        .video-controls-custom button .icon.active { display: inline-block; }
+        
+        #currentChapterTitleDisplay {
+            color: #e0e0e0;
+            font-size: 0.9em; 
+            margin-left: 8px; 
+            margin-right: 8px; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px; 
+            font-weight: 500;
+        }
+
+        .volume-controls { display: flex; align-items: center; gap: 8px; }
+        .video-controls-custom input[type="range"].volume-bar {
+            width: 70px; height: 5px;
+        }
+         .video-controls-custom input[type="range"].volume-bar::-webkit-slider-thumb {
+            width: 12px; height: 12px; margin-top: -3.5px; 
+        }
+        .video-controls-custom input[type="range"].volume-bar::-moz-range-thumb {
+            width: 12px; height: 12px;
+        }
+        .time-display {
+            color: #e0e0e0; font-size: 0.85em; min-width: 85px; 
+            text-align: center; user-select: none; 
+            font-variant-numeric: tabular-nums; 
+        }
+        
+        .playback-speed-button {
+            font-size: 0.8em !important; 
+            padding: 4px 6px !important; 
+            min-width: 35px; 
+            text-align: center;
+            color: #e0e0e0;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+        .playback-speed-button:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .speed-menu {
+            position: absolute;
+            bottom: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(3px);
+            border-radius: 6px;
+            padding: 5px 0;
+            z-index: 30; 
+            display: none; 
+            min-width: 60px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+        .speed-menu button {
+            display: block; width: 100%; text-align: center;
+            padding: 8px 12px; font-size: 0.9em; color: #e0e0e0;
+        }
+        .speed-menu button:hover {
+            background-color: rgba(255,255,255,0.15); color: #fff;
+            transform: none; 
+        }
+        .speed-menu button.active-speed {
+            font-weight: bold; color: #00aeff; 
+        }
+
+        .right-controls { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+        .chapter-list {
+            flex: 1 1 250px; min-width: 220px; max-height: 420px; 
+            overflow-y: auto; padding: 15px; background: #f8f9fa; 
+            border: 1px solid #dee2e6; border-radius: 8px;
+        }
+        #chapterListTitle { 
+            font-size: 1.25em; border-bottom: 1px solid #ced4da;
+            padding-bottom: 12px; margin-bottom: 12px; color: #1c2938;
+        }
+        .chapter-item {
+            padding: 12px 15px; margin-bottom: 10px; background-color: #ffffff;
+            border: 1px solid #e9ecef; border-radius: 6px; cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .chapter-item:hover {
+            background-color: #f1f3f5; transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .chapter-item.active {
+            background-color: #007bff; color: white; border-color: #0069d9;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+        }
+        .chapter-item strong {
+            display: block; font-size: 1.05em; margin-bottom: 4px; color: #212529; 
+        }
+         .chapter-item.active strong { color: #ffffff; }
+        .chapter-item p {
+            font-size: 0.9em; color: #495057; margin: 0; word-wrap: break-word;
+        }
+        .chapter-item.active p { color: #e0e0e0; }
+
+        .editor-section, .embed-section {
+            background: #f8f9fa; padding: 25px; border-radius: 10px;
+            margin-bottom: 35px; border: 1px solid #e7e9ec;
+        }
+        .url-input, .chapter-editor div, .chapter-title-editor div { margin-bottom: 18px; }
+        .url-input {
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+        }
+        .url-input label { flex-basis: 100%; font-size: 1.05em; }
+        .url-input input[type="text"]{ flex-grow: 1; min-width: 200px; }
+
+        label {
+            display: block; margin-bottom: 6px; font-weight: 600; color: #343a40;
+        }
+        input[type="text"], textarea {
+            width: 100%; box-sizing: border-box; padding: 12px 15px; 
+            border: 1px solid #ced4da; border-radius: 6px; font-size: 1em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input[type="text"]:focus, textarea:focus {
+            border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+        .url-input input[type="text"], .chapter-editor input[type="text"], .chapter-title-editor input[type="text"] { width: auto; }
+        textarea { min-height: 90px; resize: vertical; }
+
+        button {
+            padding: 12px 20px; background-color: #28a745; color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-size: 1em;
+            font-weight: 500; transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-right: 10px; margin-top: 5px;
+        }
+        button:hover { background-color: #218838; transform: translateY(-1px); }
+        button:active { transform: translateY(0px); }
+        button:last-child { margin-right: 0; }
+
+        #loadVideoBtn { background-color: #007bff; white-space: nowrap; }
+        #loadVideoBtn:hover { background-color: #0056b3; }
+        #getTimestampBtn {
+            background-color: #6f42c1; font-size: 0.9em;
+            padding: 10px 15px; white-space: nowrap;
+        }
+        #getTimestampBtn:hover { background-color: #5a32a3; }
+        #clearChapterFormBtn { background-color: #fd7e14; }
+        #clearChapterFormBtn:hover { background-color: #e66a00; }
+
+        .chapters-preview h3 { margin-bottom: 15px; }
+        .chapter-preview-item {
+            background: #ffffff; padding: 15px; border: 1px solid #dee2e6;
+            border-radius: 6px; margin-bottom: 12px; display: flex;
+            flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+        }
+        .chapter-preview-item div:first-child { flex-grow: 1; min-width: 200px; }
+        .chapter-preview-item strong { font-size: 1.1em; color: #343a40; }
+        .chapter-preview-item small { color: #6c757d; margin-left: 10px; }
+        .chapter-preview-item p {
+            margin: 5px 0 0; font-size: 0.95em; color: #495057; word-wrap: break-word;
+        }
+        .chapter-actions button {
+            font-size: 0.9em; padding: 8px 12px; margin-left: 5px; margin-top: 5px;
+        }
+        .chapter-actions button:first-child { margin-left: 0; }
+        .chapter-actions .edit-btn { background-color: #007bff; }
+        .chapter-actions .edit-btn:hover { background-color: #0056b3; }
+        .chapter-actions .delete-btn { background-color: #dc3545; }
+        .chapter-actions .delete-btn:hover { background-color: #c82333; }
+
+        #jsonOutput {
+            width: 100%; box-sizing: border-box; min-height: 160px; 
+            background-color: #212529; color: #f8f9fa; 
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; 
+            font-size: 0.9em; padding: 15px; border-radius: 6px;
+            border: 1px solid #343a40; margin-bottom: 10px;
+        }
+        #copyJsonBtn { background-color: #17a2b8; }
+        #copyJsonBtn:hover { background-color: #117a8b; }
+
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(3px); 
+        }
+        .custom-modal {
+            background-color: white; padding: 25px 35px; border-radius: 10px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center;
+            min-width: 300px; max-width: 450px;
+        }
+        .custom-modal p {
+            margin-top: 0; margin-bottom: 25px; font-size: 1.15em; color: #333;
+        }
+        .custom-modal button { 
+            padding: 10px 20px; font-weight: 500; border-radius: 5px;
+        }
+        #customModalCloseBtn { background-color: #007bff; }
+        #customModalCloseBtn:hover { background-color: #0056b3; }
+
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            h1 { font-size: 1.8em; }
+            .player-container { flex-direction: column; padding: 15px; }
+            .chapter-list { max-height: 250px; }
+            .url-input { flex-direction: column; align-items: stretch; }
+            .url-input input[type="text"] { width: 100%; }
+            .url-input button { width: 100%; margin-top: 10px; }
+            .chapter-editor div, .chapter-title-editor div { display: flex; flex-direction: column; }
+            .chapter-editor input[type="text"], .chapter-editor textarea, .chapter-title-editor input[type="text"] { width: 100%; }
+            .chapter-editor button { width: auto; }
+            .editor-section, .embed-section { padding: 15px; }
+            .timeline-container { bottom: 48px; padding: 0 10px; }
+            .seek-bar-wrapper { height: 10px; } 
+            .timeline-chapter-segment { height: 4px; }
+            .timeline-chapter-segment.hovered { height: 7px; transform: translateY(-1.5px); }
+            .timeline-gap-segment { width: 3px; }
+            #seekBarCustom::-webkit-slider-thumb { width: 12px; height: 12px; }
+            #seekBarCustom::-moz-range-thumb { width: 12px; height: 12px; }
+            .video-controls-custom { padding: 8px 10px; gap: 4px; }
+            .video-controls-custom button svg { width: 18px; height: 18px; }
+            #currentChapterTitleDisplay { max-width: 80px; font-size: 0.75em; margin-left: 5px; margin-right: 5px;}
+            .time-display { font-size: 0.8em; min-width: 70px; }
+            .video-controls-custom input[type="range"].volume-bar { width: 50px; }
+            #bigPlayPauseBtn { width: 60px; height: 60px; } 
+            #bigPlayPauseBtn svg { width: 30px; height: 30px; }
+            .playback-speed-button { min-width: 30px; font-size: 0.75em !important; }
+            .speed-menu { left: auto; right: 0; transform: translateX(0); } 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Player & Chapter Editor 🎞️</h1>
+
+        <div class="player-container">
+            <div class="video-wrapper">
+                <video id="mainVideo" width="640" height="360">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div id="bigPlayButtonOverlay" class="big-play-button-overlay">
+                    <button id="bigPlayPauseBtn" title="Play/Pause">
+                        <svg class="icon icon-play active" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg class="icon icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                        <svg class="icon icon-replay" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>
+                    </button>
+                </div>
+
+                <div id="timelineContainer" class="timeline-container">
+                    <div id="seekBarWrapper" class="seek-bar-wrapper"> 
+                         <input type="range" id="seekBarCustom" value="0" min="0" step="0.1">
+                         <div id="customThumb"></div>
+                    </div>
+                    <div id="seekBarTooltip" class="seek-bar-tooltip"></div> 
+                </div>
+
+                <div id="videoControlsCustom" class="video-controls-custom">
+                    <button id="playPauseBtnCustom" title="Play/Pause">
+                        <svg class="icon icon-play active" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                        <svg class="icon icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                        <svg class="icon icon-replay" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>
+                    </button>
+                    <button id="nextChapterBtnCustom" title="Next Chapter">
+                        <svg class="icon icon-next active" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
+                    </button>
+                    <div id="currentChapterTitleDisplay" title="Current Chapter"></div> 
+                    <div id="timeDisplayCustom" class="time-display">00:00 / 00:00</div>
+                    
+                    <div class="right-controls">
+                        <button id="speedBtnCustom" class="playback-speed-button" title="Playback Speed">1x</button>
+                        <div id="speedMenuCustom" class="speed-menu">
+                            <button data-speed="0.5">0.5x</button>
+                            <button data-speed="0.75">0.75x</button>
+                            <button data-speed="1" class="active-speed">1x (Normal)</button>
+                            <button data-speed="1.25">1.25x</button>
+                            <button data-speed="1.5">1.5x</button>
+                            <button data-speed="2">2x</button>
+                        </div>
+                        <div class="volume-controls">
+                            <button id="muteBtnCustom" title="Mute/Unmute">
+                                <svg class="icon icon-volume-high active" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
+                                <svg class="icon icon-volume-muted" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L7 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3z"></path></svg>
+                            </button>
+                            <input type="range" id="volumeBarCustom" class="volume-bar" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <button id="pipBtnCustom" title="Picture-in-Picture">
+                            <svg class="icon icon-pip active" viewBox="0 0 24 24"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"></path></svg>
+                        </button>
+                        <button id="fullscreenBtnCustom" title="Fullscreen">
+                            <svg class="icon icon-fullscreen active" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path></svg>
+                            <svg class="icon icon-fullscreen-exit" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="chapterList" class="chapter-list">
+                <h2 id="chapterListTitle">Chapters 📖</h2> 
+                <p>Load a video and add chapters to see them here.</p>
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <h2>Editor ⚙️</h2>
+            <div class="url-input">
+                <label for="videoUrl">MP4 Video URL:</label>
+                <input type="text" id="videoUrl" placeholder="Paste full MP4 URL here..." value="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">
+                <button id="loadVideoBtn">Load Video</button>
+            </div>
+
+            <div class="chapter-title-editor"> 
+                <h3>Chapter List Settings</h3>
+                <div>
+                    <label for="customChapterTitle">Chapter List Title:</label>
+                    <input type="text" id="customChapterTitleInput" value="Chapters 📖">
+                </div>
+            </div>
+
+            <div class="chapter-editor">
+                <h3>Add/Edit Chapter</h3>
+                <input type="hidden" id="chapterId">
+                <div>
+                    <label for="chapterTimestamp">Timestamp (e.g., 01:30 or 90s):</label>
+                    <input type="text" id="chapterTimestamp" placeholder="HH:MM:SS or seconds">
+                    <button id="getTimestampBtn" title="Get current video time">Get Current Time</button>
+                </div>
+                <div>
+                    <label for="chapterTitle">Chapter Title:</label>
+                    <input type="text" id="chapterTitle" placeholder="Enter chapter title">
+                </div>
+                <div>
+                    <label for="chapterDescription">Chapter Description (optional):</label>
+                    <textarea id="chapterDescription" placeholder="Enter chapter description"></textarea>
+                </div>
+                <button id="addChapterBtn">Add/Update Chapter</button>
+                <button id="clearChapterFormBtn" style="display:none;">Cancel Edit</button>
+            </div>
+
+            <div id="chaptersPreview" class="chapters-preview">
+                <h3>Current Chapters</h3>
+                <p>No chapters added yet for the current video.</p>
+            </div>
+        </div>
+
+        <div class="embed-section">
+            <h2>Embed Code 📋</h2>
+            <p>Copy the JSON below and use it with <code>embed.js</code> (to be created separately) to render this player elsewhere.</p>
+            <textarea id="jsonOutput" readonly></textarea>
+            <button id="copyJsonBtn">Copy JSON</button>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <p id="customModalMessage"></p>
+            <button id="customModalCloseBtn">OK</button>
+        </div>
+    </div>
+
+    <script>
+        const customModalOverlay = document.getElementById('customModalOverlay');
+        const customModalMessage = document.getElementById('customModalMessage');
+        const customModalCloseBtn = document.getElementById('customModalCloseBtn');
+
+        function showAlert(message) {
+            customModalMessage.textContent = message;
+            customModalOverlay.style.display = 'flex';
+        }
+
+        customModalCloseBtn.addEventListener('click', () => {
+            customModalOverlay.style.display = 'none';
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoWrapper = document.querySelector('.video-wrapper');
+            const video = document.getElementById('mainVideo');
+            const videoUrlInput = document.getElementById('videoUrl');
+            const loadVideoBtn = document.getElementById('loadVideoBtn');
+            
+            const chapterListDiv = document.getElementById('chapterList');
+            const chapterListTitleElement = document.getElementById('chapterListTitle'); 
+            const customChapterTitleInput = document.getElementById('customChapterTitleInput'); 
+
+            const chaptersPreviewDiv = document.getElementById('chaptersPreview');
+            const chapterIdInput = document.getElementById('chapterId');
+            const chapterTimestampInput = document.getElementById('chapterTimestamp');
+            const getTimestampBtn = document.getElementById('getTimestampBtn');
+            const chapterTitleInput = document.getElementById('chapterTitle');
+            const chapterDescriptionInput = document.getElementById('chapterDescription');
+            const addChapterBtn = document.getElementById('addChapterBtn');
+            const clearChapterFormBtn = document.getElementById('clearChapterFormBtn');
+            const jsonOutputTextarea = document.getElementById('jsonOutput');
+            const copyJsonBtn = document.getElementById('copyJsonBtn');
+
+            const timelineContainer = document.getElementById('timelineContainer'); 
+            const videoControlsCustom = document.getElementById('videoControlsCustom');
+            const playPauseBtnCustom = document.getElementById('playPauseBtnCustom');
+            const nextChapterBtnCustom = document.getElementById('nextChapterBtnCustom'); 
+            
+            const bigPlayButtonOverlay = document.getElementById('bigPlayButtonOverlay');
+            const bigPlayPauseBtn = document.getElementById('bigPlayPauseBtn'); 
+
+            const seekBarWrapper = document.getElementById('seekBarWrapper'); 
+            const seekBarCustom = document.getElementById('seekBarCustom');
+            // const seekBarProgress = document.getElementById('seekBarProgress'); // Progress is now part of segments
+            // const chapterMarkersContainer = document.getElementById('chapterMarkersContainer'); // This will be removed or repurposed
+            const seekBarTooltip = document.getElementById('seekBarTooltip'); 
+            const customThumb = document.getElementById('customThumb');
+
+
+            const currentChapterTitleDisplay = document.getElementById('currentChapterTitleDisplay'); 
+            const timeDisplayCustom = document.getElementById('timeDisplayCustom');
+            
+            const muteBtnCustom = document.getElementById('muteBtnCustom');
+            const volumeBarCustom = document.getElementById('volumeBarCustom');
+
+            const speedBtnCustom = document.getElementById('speedBtnCustom');
+            const speedMenuCustom = document.getElementById('speedMenuCustom');
+            const pipBtnCustom = document.getElementById('pipBtnCustom');
+            const fullscreenBtnCustom = document.getElementById('fullscreenBtnCustom');
+
+
+            let chapters = [];
+            let currentVideoSrc = ""; 
+            let isSeeking = false;
+            let currentChapterListTitle = "Chapters 📖";
+            const GAP_WIDTH_PIXELS = 4; // Wider gap in pixels
+
+            function setActiveIcon(button, activeIconClass) {
+                button.querySelectorAll('.icon').forEach(icon => {
+                    icon.classList.toggle('active', icon.classList.contains(activeIconClass));
+                });
+            }
+            
+            loadVideoBtn.addEventListener('click', loadVideoFromInput);
+            videoUrlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') loadVideoFromInput();
+            });
+
+            customChapterTitleInput.addEventListener('input', (e) => {
+                currentChapterListTitle = e.target.value || "Chapters 📖";
+                chapterListTitleElement.textContent = currentChapterListTitle;
+                updateJsonOutput();
+            });
+
+
+            function loadVideoFromInput() {
+                const url = videoUrlInput.value.trim();
+                if (url) {
+                    currentVideoSrc = url; 
+                    video.src = url;
+                    video.load(); 
+                    chapters = [];
+                    renderChapterList(); renderChaptersPreview(); updateJsonOutput(); 
+                    renderTimelineSegments(); 
+                    chapterIdInput.value = ""; clearChapterForm();
+                    
+                    setActiveIcon(playPauseBtnCustom, 'icon-play');
+                    setActiveIcon(bigPlayPauseBtn, 'icon-play');
+                    bigPlayButtonOverlay.classList.remove('hidden'); 
+
+                    seekBarCustom.value = 0; 
+                    // seekBarProgress.style.width = '0%'; // Progress handled by segments now
+                    timeDisplayCustom.textContent = "00:00 / 00:00"; 
+                    currentChapterTitleDisplay.textContent = ""; 
+                    video.playbackRate = 1; 
+                    speedBtnCustom.textContent = "1x";
+                    speedMenuCustom.querySelectorAll('button').forEach(btn => btn.classList.remove('active-speed'));
+                    speedMenuCustom.querySelector('button[data-speed="1"]').classList.add('active-speed');
+                    customThumb.style.display = 'block'; // Show custom thumb
+
+                    console.log("Video load initiated for:", url);
+                } else {
+                    showAlert("Please enter a valid MP4 URL.");
+                }
+            }
+            
+            if (videoUrlInput.value.trim()) loadVideoFromInput();
+
+            function timeToSeconds(timeStr) {
+                if (!isNaN(parseFloat(timeStr)) && isFinite(timeStr)) return parseFloat(timeStr);
+                const parts = String(timeStr).split(':').map(Number);
+                if (parts.some(isNaN)) return NaN;
+                let seconds = 0;
+                if (parts.length === 3) seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                else if (parts.length === 2) seconds = parts[0] * 60 + parts[1];
+                else if (parts.length === 1) seconds = parts[0];
+                else return NaN;
+                return seconds;
+            }
+
+            function secondsToTime(totalSeconds, showHoursForce = false) {
+                if (isNaN(totalSeconds) || totalSeconds < 0) return "00:00";
+                totalSeconds = Math.floor(totalSeconds);
+                const h = Math.floor(totalSeconds / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+                const hh = String(h).padStart(2, '0');
+                const mm = String(m).padStart(2, '0');
+                const ss = String(s).padStart(2, '0');
+                if (h > 0 || showHoursForce) return `${hh}:${mm}:${ss}`;
+                return `${mm}:${ss}`;
+            }
+            
+            function updateTimeDisplay() {
+                const duration = video.duration;
+                if (isNaN(duration)) {
+                     timeDisplayCustom.textContent = `${secondsToTime(video.currentTime)} / --:--`;
+                     return;
+                }
+                const showHours = duration >= 3600;
+                timeDisplayCustom.textContent = `${secondsToTime(video.currentTime, showHours)} / ${secondsToTime(duration, showHours)}`;
+            }
+
+            getTimestampBtn.addEventListener('click', () => {
+                if (video.src && video.readyState >= 1) { 
+                     chapterTimestampInput.value = secondsToTime(video.currentTime, video.duration >= 3600);
+                } else {
+                    showAlert("Load a video first."); chapterTimestampInput.value = "00:00";
+                }
+            });
+
+            addChapterBtn.addEventListener('click', () => {
+                if (!video.src || video.readyState < 1) { showAlert("Load a video first."); return; }
+                const id = chapterIdInput.value || `ch-${Date.now()}`; 
+                const tsStr = chapterTimestampInput.value.trim();
+                const title = chapterTitleInput.value.trim();
+                const desc = chapterDescriptionInput.value.trim();
+                if (!tsStr || !title) { showAlert("Timestamp and Title are required."); return; }
+                const ts = timeToSeconds(tsStr);
+                const dur = video.duration;
+                if (isNaN(ts) || ts < 0 || (!isNaN(dur) && dur > 0 && ts > dur) ) {
+                     let durMsg = (!isNaN(dur) && dur > 0) ? `(${secondsToTime(dur, dur >= 3600)})` : "(duration unknown)";
+                    showAlert(`Invalid timestamp. Must be 0 to ${durMsg}.`); return;
+                }
+                const chapterData = { id, timestamp: ts, title, description: desc };
+                const exIdx = chapters.findIndex(ch => ch.id === id);
+                if (exIdx > -1) chapters[exIdx] = chapterData; else chapters.push(chapterData);
+                chapters.sort((a, b) => a.timestamp - b.timestamp); 
+                renderChapterList(); renderChaptersPreview(); updateJsonOutput(); renderTimelineSegments(); clearChapterForm(); 
+            });
+
+            clearChapterFormBtn.addEventListener('click', clearChapterForm);
+
+            function clearChapterForm() {
+                chapterIdInput.value = ""; chapterTimestampInput.value = "";
+                chapterTitleInput.value = ""; chapterDescriptionInput.value = "";
+                addChapterBtn.textContent = "Add/Update Chapter";
+                clearChapterFormBtn.style.display = "none";
+            }
+
+            function renderChapterList() {
+                chapterListTitleElement.textContent = currentChapterListTitle; 
+                const listContent = chapterListDiv.querySelector('p') || document.createElement('div'); 
+                if (chapterListDiv.querySelector('p')) chapterListDiv.querySelector('p').remove(); 
+                
+                Array.from(chapterListDiv.children).forEach(child => {
+                    if (child.tagName !== 'H2') child.remove();
+                });
+
+                if (!currentVideoSrc || !video.src || video.readyState < 1 ) { 
+                    const p = document.createElement('p');
+                    p.textContent = "Load a video to see chapters.";
+                    chapterListDiv.appendChild(p);
+                    return;
+                }
+                if (chapters.length === 0) {
+                     const p = document.createElement('p');
+                    p.textContent = "No chapters added for this video.";
+                    chapterListDiv.appendChild(p);
+                    return;
+                }
+                const showHours = video.duration >= 3600;
+                chapters.forEach(ch => {
+                    const item = document.createElement('div');
+                    item.className = 'chapter-item'; item.dataset.timestamp = ch.timestamp;
+                    item.innerHTML = `<strong>${ch.title} (${secondsToTime(ch.timestamp, showHours)})</strong><p>${ch.description||''}</p>`;
+                    item.addEventListener('click', () => {
+                        video.currentTime = ch.timestamp;
+                        if (video.paused) video.play().catch(e=>console.error("play err", e)); 
+                        setActiveChapterUI(ch.timestamp); 
+                    });
+                    chapterListDiv.appendChild(item);
+                });
+                setActiveChapterUI(video.currentTime); 
+            }
+
+            function renderChaptersPreview() {
+                chaptersPreviewDiv.innerHTML = '<h3>Current Chapters</h3>';
+                if (!currentVideoSrc || !video.src || video.readyState < 1 ) {
+                    chaptersPreviewDiv.innerHTML += "<p>Load a video to manage chapters.</p>"; return;
+                }
+                if (chapters.length === 0) {
+                    chaptersPreviewDiv.innerHTML += "<p>No chapters to preview/edit.</p>"; return;
+                }
+                const showHours = video.duration >= 3600;
+                chapters.forEach(ch => {
+                    const item = document.createElement('div');
+                    item.className = 'chapter-preview-item';
+                    item.innerHTML = `<div><strong>${ch.title}</strong> <small>(${secondsToTime(ch.timestamp, showHours)})</small><p>${ch.description||'No desc.'}</p></div><div class="chapter-actions"><button class="edit-btn" data-id="${ch.id}">Edit</button><button class="delete-btn" data-id="${ch.id}">Delete</button></div>`;
+                    chaptersPreviewDiv.appendChild(item);
+                });
+                chaptersPreviewDiv.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.dataset.id;
+                        const chEdit = chapters.find(ch => ch.id === id);
+                        if (chEdit) {
+                            chapterIdInput.value = chEdit.id;
+                            chapterTimestampInput.value = secondsToTime(chEdit.timestamp, video.duration >= 3600);
+                            chapterTitleInput.value = chEdit.title;
+                            chapterDescriptionInput.value = chEdit.description;
+                            addChapterBtn.textContent = "Update Chapter";
+                            clearChapterFormBtn.style.display = "inline-block";
+                            chapterTitleInput.focus(); 
+                            document.querySelector('.chapter-editor').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                });
+                chaptersPreviewDiv.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const modal = document.getElementById('customModalOverlay');
+                        const msg = document.getElementById('customModalMessage');
+                        const container = document.querySelector('.custom-modal');
+                        container.querySelectorAll('.confirm-action-btn').forEach(b => b.remove());
+                        msg.textContent = "Delete this chapter?";
+                        const confirmBtn = document.createElement('button');
+                        confirmBtn.textContent = "Delete"; confirmBtn.className = "confirm-action-btn";
+                        confirmBtn.style.cssText = "background-color:#dc3545;color:white;margin-right:10px;";
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.textContent = "Cancel"; cancelBtn.className = "confirm-action-btn";
+                        cancelBtn.style.cssText = "background-color:#6c757d;color:white;";
+                        container.appendChild(confirmBtn); container.appendChild(cancelBtn);
+                        modal.style.display = 'flex';
+                        document.getElementById('customModalCloseBtn').style.display = 'none';
+                        confirmBtn.onclick = () => {
+                            const id = e.target.dataset.id;
+                            chapters = chapters.filter(ch => ch.id !== id);
+                            renderChapterList(); renderChaptersPreview(); updateJsonOutput(); renderTimelineSegments();
+                            if (chapterIdInput.value === id) clearChapterForm();
+                            modal.style.display = 'none'; confirmBtn.remove(); cancelBtn.remove();
+                            document.getElementById('customModalCloseBtn').style.display = 'inline-block';
+                        };
+                        cancelBtn.onclick = () => {
+                            modal.style.display = 'none'; confirmBtn.remove(); cancelBtn.remove();
+                            document.getElementById('customModalCloseBtn').style.display = 'inline-block';
+                        };
+                    });
+                });
+            }
+
+            function updateJsonOutput() {
+                jsonOutputTextarea.value = JSON.stringify({ 
+                    videoUrl: currentVideoSrc, 
+                    chapterListTitle: currentChapterListTitle, 
+                    chapters: chapters.map(({ id, ...r }) => r) 
+                }, null, 2);
+            }
+
+            copyJsonBtn.addEventListener('click', () => {
+                if (!jsonOutputTextarea.value || jsonOutputTextarea.value.trim().length < 30) { 
+                    showAlert("Nothing to copy."); return;
+                }
+                jsonOutputTextarea.select();
+                try { document.execCommand('copy'); showAlert('JSON copied!'); }
+                catch (err) { showAlert('Failed to copy.'); console.error('Copy fail', err); }
+                window.getSelection().removeAllRanges();
+            });
+
+            function renderTimelineSegments() {
+                seekBarWrapper.innerHTML = ''; // Clear previous content
+                seekBarWrapper.appendChild(seekBarCustom); // Add back the invisible range input
+                seekBarWrapper.appendChild(customThumb);   // Add back the custom thumb
+
+                if (!video.duration || isNaN(video.duration) || video.duration === 0) {
+                    const segment = document.createElement('div');
+                    segment.className = 'timeline-chapter-segment';
+                    segment.style.flexGrow = '1';
+                    const progressFill = document.createElement('div');
+                    progressFill.className = 'progress-fill';
+                    segment.appendChild(progressFill);
+                    seekBarWrapper.insertBefore(segment, seekBarCustom);
+                    updateSegmentProgress();
+                    return;
+                }
+
+                if (chapters.length === 0) {
+                    const segment = document.createElement('div');
+                    segment.className = 'timeline-chapter-segment';
+                    segment.style.flexGrow = '1';
+                    segment.dataset.startTime = 0;
+                    segment.dataset.endTime = video.duration;
+                    segment.dataset.title = "Full Video";
+                    const progressFill = document.createElement('div');
+                    progressFill.className = 'progress-fill';
+                    segment.appendChild(progressFill);
+                    addSegmentEventListeners(segment);
+                    seekBarWrapper.insertBefore(segment, seekBarCustom);
+                    updateSegmentProgress();
+                    return;
+                }
+
+                let currentPosition = 0;
+                const totalDuration = video.duration;
+
+                chapters.forEach((chapter, index) => {
+                    const chapterStart = chapter.timestamp;
+                    const chapterEnd = (index + 1 < chapters.length) ? chapters[index + 1].timestamp : totalDuration;
+                    
+                    const segmentDuration = chapterEnd - chapterStart;
+                    if (segmentDuration <= 0 && chapterEnd < totalDuration) return; // Skip zero or negative length segments unless it's the very last one filling to end
+
+                    const segment = document.createElement('div');
+                    segment.className = 'timeline-chapter-segment';
+                    const segmentWidthPercent = (segmentDuration / totalDuration) * 100;
+                    segment.style.flexBasis = `${segmentWidthPercent}%`;
+                    
+                    segment.dataset.startTime = chapterStart;
+                    segment.dataset.endTime = chapterEnd;
+                    segment.dataset.title = chapter.title;
+                    segment.dataset.timestamp = chapter.timestamp; // For tooltip accuracy
+
+                    const progressFill = document.createElement('div');
+                    progressFill.className = 'progress-fill';
+                    segment.appendChild(progressFill);
+                    
+                    addSegmentEventListeners(segment);
+                    seekBarWrapper.insertBefore(segment, seekBarCustom);
+
+                    // Add a gap if it's not the last chapter segment
+                    if (index < chapters.length - 1) {
+                        const gap = document.createElement('div');
+                        gap.className = 'timeline-gap-segment';
+                        seekBarWrapper.insertBefore(gap, seekBarCustom);
+                    }
+                    currentPosition = chapterEnd;
+                });
+                 // Ensure the timeline visually fills if the last chapter doesn't end at video duration
+                if (chapters.length > 0 && currentPosition < totalDuration) {
+                    const lastChapter = chapters[chapters.length - 1];
+                     // This case should ideally be handled by the loop making the last segment go to video.duration
+                     // but as a fallback, or if there's only one chapter not at the start:
+                    if (lastChapter.timestamp < totalDuration && seekBarWrapper.querySelectorAll('.timeline-chapter-segment').length === chapters.length) {
+                         // This logic might need refinement if the last chapter doesn't fill the timeline
+                    }
+                }
+
+
+                updateSegmentProgress();
+            }
+
+
+            function addSegmentEventListeners(segment) {
+                segment.addEventListener('mouseenter', (e) => {
+                    segment.classList.add('hovered');
+                    const chapterTitle = segment.dataset.title || "Video";
+                    const chapterTime = parseFloat(segment.dataset.timestamp); // Use chapter's actual start time for tooltip
+                    seekBarTooltip.innerHTML = `<span class="tooltip-title">${chapterTitle}</span><span class="tooltip-time">${secondsToTime(chapterTime, video.duration >= 3600)}</span>`;
+                    
+                    // Position tooltip based on mouse position over the segment
+                    const wrapperRect = seekBarWrapper.getBoundingClientRect();
+                    const mouseX = e.clientX - wrapperRect.left;
+                    let hoverPercent = (mouseX / wrapperRect.width) * 100;
+                    hoverPercent = Math.max(0, Math.min(100, hoverPercent)); // Clamp
+
+                    positionTooltip(hoverPercent);
+                    seekBarTooltip.style.display = 'block';
+                });
+                segment.addEventListener('mouseleave', () => {
+                    segment.classList.remove('hovered');
+                    seekBarTooltip.style.display = 'none';
+                });
+                segment.addEventListener('click', (e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const segmentWidth = rect.width;
+                    const segmentStartTime = parseFloat(e.currentTarget.dataset.startTime);
+                    const segmentEndTime = parseFloat(e.currentTarget.dataset.endTime);
+                    const clickTime = segmentStartTime + (clickX / segmentWidth) * (segmentEndTime - segmentStartTime);
+                    
+                    video.currentTime = clickTime;
+                    if(video.paused) video.play().catch(err => console.error(err));
+                });
+            }
+            
+            function positionTooltip(hoverPercent) {
+                let tooltipLeftPercent = hoverPercent;
+                const tooltipWidth = seekBarTooltip.offsetWidth;
+                const seekBarWidth = seekBarWrapper.offsetWidth;
+
+                if (seekBarWidth > 0 && tooltipWidth > 0) { // Ensure elements are rendered
+                    const minLeftPercent = (tooltipWidth / 2 / seekBarWidth) * 100;
+                    const maxLeftPercent = 100 - minLeftPercent;
+                    tooltipLeftPercent = Math.max(minLeftPercent, Math.min(tooltipLeftPercent, maxLeftPercent));
+                } else {
+                    tooltipLeftPercent = hoverPercent; // Fallback if dimensions not ready
+                }
+                
+                seekBarTooltip.style.left = `${tooltipLeftPercent}%`;
+            }
+
+
+            seekBarWrapper.addEventListener('mousemove', (e) => { 
+                // This is a fallback tooltip if not over a specific segment
+                // The primary tooltip logic is now on the segments themselves
+                let isOverAnySegment = false;
+                seekBarWrapper.querySelectorAll('.timeline-chapter-segment').forEach(s => {
+                    if (s.classList.contains('hovered')) isOverAnySegment = true;
+                });
+
+                if (!isOverAnySegment && video.duration && !isNaN(video.duration) && video.duration > 0) {
+                    const rect = seekBarWrapper.getBoundingClientRect(); 
+                    const hoverX = e.clientX - rect.left;
+                    let hoverPercent = (hoverX / rect.width) * 100;
+                    hoverPercent = Math.max(0, Math.min(100, hoverPercent)); 
+                    const hoverTime = (hoverX / rect.width) * video.duration;
+                    
+                    seekBarTooltip.innerHTML = `<span class="tooltip-time">${secondsToTime(hoverTime, video.duration >= 3600)}</span>`;
+                    positionTooltip(hoverPercent);
+                    seekBarTooltip.style.display = 'block';
+                } else if (!isOverAnySegment) {
+                    seekBarTooltip.style.display = 'none';
+                }
+            });
+
+            seekBarWrapper.addEventListener('mouseleave', () => { 
+                seekBarTooltip.style.display = 'none';
+                 seekBarWrapper.querySelectorAll('.timeline-chapter-segment.hovered').forEach(seg => seg.classList.remove('hovered'));
+            });
+
+
+            video.addEventListener('loadedmetadata', () => {
+                if (isNaN(video.duration)) {
+                    seekBarCustom.max = 0; 
+                } else {
+                    seekBarCustom.max = video.duration;
+                }
+                updateTimeDisplay(); renderChapterList(); renderChaptersPreview(); updateJsonOutput(); 
+                renderTimelineSegments(); 
+                bigPlayButtonOverlay.classList.remove('hidden'); 
+                setActiveIcon(bigPlayPauseBtn, 'icon-play');
+                setActiveIcon(playPauseBtnCustom, 'icon-play');
+                customThumb.style.display = 'block';
+                updateCustomThumbPosition();
+            });
+
+            video.addEventListener('error', (e) => {
+                let msg = "Error loading video.";
+                if (video.error) {
+                    switch (video.error.code) {
+                        case 1: msg = 'Playback aborted.'; break; 
+                        case 2: msg = 'Network error.'; break;
+                        case 3: msg = 'Decoding error.'; break;
+                        case 4: msg = 'Source not supported/found.'; break;
+                    }
+                }
+                showAlert(msg + " Check URL/CORS."); console.error("Vid Err:", video.error, e);
+                currentVideoSrc = ""; video.src = ""; chapters = []; 
+                renderChapterList(); renderChaptersPreview(); updateJsonOutput(); renderTimelineSegments();
+                setActiveIcon(playPauseBtnCustom, 'icon-play');
+                setActiveIcon(bigPlayPauseBtn, 'icon-play');
+                bigPlayButtonOverlay.classList.remove('hidden');
+                seekBarCustom.value = 0; timeDisplayCustom.textContent = "00:00 / 00:00";
+                currentChapterTitleDisplay.textContent = "";
+                customThumb.style.display = 'none';
+            });
+            
+            function updateSegmentProgress() {
+                 if (!video.duration || isNaN(video.duration) || video.duration === 0) return;
+                const currentTime = video.currentTime;
+                seekBarWrapper.querySelectorAll('.timeline-chapter-segment').forEach(segment => {
+                    const startTime = parseFloat(segment.dataset.startTime);
+                    const endTime = parseFloat(segment.dataset.endTime);
+                    const progressFill = segment.querySelector('.progress-fill');
+                    if (!progressFill) return;
+
+                    let fillPercent = 0;
+                    if (currentTime >= startTime) { // Current time is within or past this segment's start
+                        if (currentTime < endTime) { // Current time is within this segment
+                            fillPercent = ((currentTime - startTime) / (endTime - startTime)) * 100;
+                        } else { // Current time is past this segment
+                            fillPercent = 100;
+                        }
+                    } else { // Current time is before this segment
+                        fillPercent = 0;
+                    }
+                    progressFill.style.width = `${Math.max(0, Math.min(100, fillPercent))}%`;
+                });
+            }
+
+            function updateCustomThumbPosition() {
+                if (!video.duration || isNaN(video.duration) || video.duration === 0) {
+                    customThumb.style.left = '0%';
+                    return;
+                }
+                const percent = (video.currentTime / video.duration) * 100;
+                customThumb.style.left = `${Math.max(0, Math.min(100, percent))}%`;
+            }
+
+
+            video.addEventListener('timeupdate', () => {
+                if (!isSeeking) {
+                    seekBarCustom.value = video.currentTime;
+                    updateSegmentProgress();
+                    updateCustomThumbPosition();
+                }
+                updateTimeDisplay(); 
+                
+                let currentChapter = null;
+                for (let i = chapters.length - 1; i >= 0; i--) {
+                    if (video.currentTime >= chapters[i].timestamp - 0.1) { 
+                        currentChapter = chapters[i];
+                        break;
+                    }
+                }
+                currentChapterTitleDisplay.textContent = currentChapter ? currentChapter.title : "";
+                currentChapterTitleDisplay.title = currentChapter ? currentChapter.title : "";
+
+                setActiveChapterUI(video.currentTime); 
+            });
+
+            video.addEventListener('play', () => {
+                setActiveIcon(playPauseBtnCustom, 'icon-pause');
+                setActiveIcon(bigPlayPauseBtn, 'icon-pause'); 
+                bigPlayButtonOverlay.classList.add('hidden'); 
+            });
+            video.addEventListener('pause', () => {
+                setActiveIcon(playPauseBtnCustom, 'icon-play');
+                setActiveIcon(bigPlayPauseBtn, 'icon-play'); 
+                if (video.readyState >= 1 && !video.ended) { 
+                    bigPlayButtonOverlay.classList.remove('hidden'); 
+                }
+            });
+            video.addEventListener('ended', () => {
+                setActiveIcon(playPauseBtnCustom, 'icon-replay');
+                setActiveIcon(bigPlayPauseBtn, 'icon-replay'); 
+                bigPlayButtonOverlay.classList.remove('hidden'); 
+            });
+            
+            video.addEventListener('click', (e) => {
+                if (e.target === video && bigPlayButtonOverlay.classList.contains('hidden')) {
+                     togglePlayPause();
+                }
+            });
+            bigPlayButtonOverlay.addEventListener('click', togglePlayPause);
+            playPauseBtnCustom.addEventListener('click', togglePlayPause);
+
+            function togglePlayPause() {
+                if (!video.src || video.readyState < 1) { showAlert("Load a video first."); return; }
+                if (video.paused || video.ended) {
+                    video.play().catch(e => { console.error("Play error:", e); showAlert("Could not play: " + e.message); });
+                } else {
+                    video.pause();
+                }
+            }
+
+            nextChapterBtnCustom.addEventListener('click', () => {
+                if (!video.src || video.readyState < 1 || chapters.length === 0) return;
+                const currentTime = video.currentTime;
+                let nextChapterTimestamp = -1;
+                for (let i = 0; i < chapters.length; i++) {
+                    if (chapters[i].timestamp > currentTime + 0.1) { 
+                        nextChapterTimestamp = chapters[i].timestamp;
+                        break;
+                    }
+                }
+                if (nextChapterTimestamp !== -1) {
+                    video.currentTime = nextChapterTimestamp;
+                    if (video.paused) video.play().catch(e => console.error("Play error on next chapter:", e));
+                } else {
+                    console.log("Already at or past the last chapter.");
+                }
+            });
+
+
+            seekBarCustom.addEventListener('input', () => {
+                if (!video.src || video.readyState < 1 || isNaN(video.duration)) return;
+                video.currentTime = seekBarCustom.value; 
+                updateSegmentProgress();
+                updateCustomThumbPosition();
+                updateTimeDisplay();
+            });
+            seekBarCustom.addEventListener('mousedown', () => { if (video.src && video.readyState >=1) {isSeeking = true; timelineContainer.classList.add('visible');} });
+            seekBarCustom.addEventListener('mouseup', () => { if (video.src && video.readyState >=1) {isSeeking = false; timelineContainer.classList.remove('visible');} });
+            seekBarCustom.addEventListener('touchstart', () => { if (video.src && video.readyState >=1) {isSeeking = true; timelineContainer.classList.add('visible');} });
+            seekBarCustom.addEventListener('touchend', () => { if (video.src && video.readyState >=1) {isSeeking = false; timelineContainer.classList.remove('visible');} });
+
+
+            muteBtnCustom.addEventListener('click', () => {
+                if (!video.src || video.readyState < 1) return;
+                video.muted = !video.muted;
+            });
+
+            volumeBarCustom.addEventListener('input', () => {
+                if (!video.src || video.readyState < 1) return;
+                video.volume = volumeBarCustom.value;
+                video.muted = volumeBarCustom.value == 0;
+            });
+            
+            video.addEventListener('volumechange', () => { 
+                if (video.muted || video.volume === 0) {
+                    setActiveIcon(muteBtnCustom, 'icon-volume-muted');
+                    volumeBarCustom.value = 0; 
+                } else {
+                    setActiveIcon(muteBtnCustom, 'icon-volume-high');
+                    volumeBarCustom.value = video.volume;
+                }
+            });
+
+            speedBtnCustom.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                speedMenuCustom.style.display = speedMenuCustom.style.display === 'block' ? 'none' : 'block';
+            });
+            speedMenuCustom.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const speed = parseFloat(e.target.dataset.speed);
+                    video.playbackRate = speed;
+                    speedBtnCustom.textContent = `${speed}x`;
+                    if (speed === 1) speedBtnCustom.textContent = "1x"; 
+                    
+                    speedMenuCustom.querySelectorAll('button').forEach(btn => btn.classList.remove('active-speed'));
+                    e.target.classList.add('active-speed');
+                    speedMenuCustom.style.display = 'none';
+                });
+            });
+            document.addEventListener('click', (e) => {
+                if (!speedBtnCustom.contains(e.target) && !speedMenuCustom.contains(e.target)) {
+                    speedMenuCustom.style.display = 'none';
+                }
+            });
+
+            if ('pictureInPictureEnabled' in document) {
+                pipBtnCustom.style.display = 'flex'; 
+                pipBtnCustom.addEventListener('click', async () => {
+                    if (!video.src || video.readyState < 1) { showAlert("Load a video first."); return; }
+                    try {
+                        if (document.pictureInPictureElement) {
+                            await document.exitPictureInPicture();
+                        } else {
+                            await video.requestPictureInPicture();
+                        }
+                    } catch (error) {
+                        console.error("PiP Error:", error);
+                        showAlert("PiP not supported or an error occurred.");
+                    }
+                });
+            } else {
+                pipBtnCustom.style.display = 'none'; 
+            }
+
+            fullscreenBtnCustom.addEventListener('click', () => {
+                if (!video.src || video.readyState < 1) { showAlert("Load a video first."); return; }
+                toggleFullscreen();
+            });
+
+            function toggleFullscreen() {
+                if (!document.fullscreenElement && 
+                    !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  
+                    if (videoWrapper.requestFullscreen) videoWrapper.requestFullscreen();
+                    else if (videoWrapper.msRequestFullscreen) videoWrapper.msRequestFullscreen();
+                    else if (videoWrapper.mozRequestFullScreen) videoWrapper.mozRequestFullScreen();
+                    else if (videoWrapper.webkitRequestFullscreen) videoWrapper.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.msExitFullscreen) document.msExitFullscreen();
+                    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+            }
+            const fullscreenEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+            fullscreenEvents.forEach(event => {
+                document.addEventListener(event, () => {
+                    const isFullscreen = !!(document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreenElement || document.msFullscreenElement);
+                    setActiveIcon(fullscreenBtnCustom, isFullscreen ? 'icon-fullscreen-exit' : 'icon-fullscreen');
+                });
+            });
+
+
+            function setActiveChapterUI(currentTime) {
+                let activeTs = null;
+                for (let i = chapters.length - 1; i >= 0; i--) {
+                    if (chapters[i].timestamp <= currentTime + 0.5) { activeTs = chapters[i].timestamp; break; }
+                }
+                document.querySelectorAll('.chapter-list .chapter-item').forEach(item => {
+                    const itemTs = parseFloat(item.dataset.timestamp);
+                    if (itemTs === activeTs) {
+                        if (!item.classList.contains('active')) {
+                            item.classList.add('active');
+                            const itemRect = item.getBoundingClientRect();
+                            const listRect = chapterListDiv.getBoundingClientRect();
+                            if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
+                                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }
+                        }
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+
+            chapterListTitleElement.textContent = currentChapterListTitle;
+            customChapterTitleInput.value = currentChapterListTitle;
+            renderChapterList(); renderChaptersPreview(); updateJsonOutput(); renderTimelineSegments();
+            setActiveIcon(playPauseBtnCustom, 'icon-play'); 
+            setActiveIcon(bigPlayPauseBtn, 'icon-play'); 
+            bigPlayButtonOverlay.classList.remove('hidden'); 
+
+            setActiveIcon(muteBtnCustom, video.muted || video.volume === 0 ? 'icon-volume-muted' : 'icon-volume-high');
+            volumeBarCustom.value = video.muted ? 0 : video.volume;
+            setActiveIcon(fullscreenBtnCustom, 'icon-fullscreen');
+
+
+            if (video.src && video.readyState >=1 && !isNaN(video.duration)) { 
+                 updateTimeDisplay();
+                 seekBarCustom.max = video.duration;
+            } else {
+                 timeDisplayCustom.textContent = "00:00 / 00:00";
+                 seekBarCustom.max = 0; 
+            }
+        });
+    </script>
+</body>
+</html>

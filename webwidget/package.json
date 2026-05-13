@@ -1,0 +1,26 @@
+{
+  "name": "webwidget",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vicons/ionicons5": "^0.13.0",
+    "lodash-es": "^4.17.21",
+    "naive-ui": "^2.42.0",
+    "postmate": "^1.5.2",
+    "vue": "^3.5.18"
+  },
+  "devDependencies": {
+    "@types/vue": "^1.0.31",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2",
+    "vue-tsc": "^3.0.5"
+  }
+}
